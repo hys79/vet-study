@@ -1,0 +1,9 @@
+{
+  "name": "수의사 국시 공부방",
+  "short_name": "국시공부",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#10181d",
+  "theme_color": "#0f766e",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}
