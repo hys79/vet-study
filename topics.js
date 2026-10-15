@@ -8,9 +8,10 @@ window.TOPICS = [
     id: "virus-classification",
     subject: "미생물·전염병",
     title: "바이러스 분류",
-    desc: "볼티모어 분류 · 과(Family)별 질병 · 외피 유무",
+    desc: "볼티모어 분류 · 과별 질병 · 외피 유무",
     emoji: "🦠",
     items: [
+      { type: "note", title: "바이러스 분류 정리표", file: "content/virus-classification/notes.html" },
       { type: "quiz", title: "바이러스 분류 퀴즈", file: "content/virus-classification/quiz.html" }
     ]
   },

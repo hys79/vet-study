@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>바이러스 분류 정리표</title>
+<style>
+:root{--bg:#f4f7f6;--card:#fff;--ink:#14202b;--sub:#5b6b78;--line:#d5dede;--acc:#0f766e;--no:#15803d}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#10181d;--card:#18232a;--ink:#e8eef1;--sub:#97a8b3;--line:#2c3b44;--acc:#2dd4bf;--no:#4ade80}}
+:root[data-theme="dark"]{--bg:#10181d;--card:#18232a;--ink:#e8eef1;--sub:#97a8b3;--line:#2c3b44;--acc:#2dd4bf;--no:#4ade80}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Pretendard","Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;line-height:1.5;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+main{max-width:860px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:26px;margin:8px 0 4px;letter-spacing:-.02em}
+p.sub{color:var(--sub);margin:0 0 14px;font-size:14.5px}
+.memo{background:color-mix(in srgb,#eab308 22%,var(--card));border:1.5px solid color-mix(in srgb,#eab308 55%,var(--line));border-radius:12px;padding:10px 14px;font-size:14.5px;margin-bottom:12px}
+.tools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.tools.fold{margin:-6px 0 14px}.tools.fold button{font-size:14px;padding:6px 12px}
+.tools input{flex:1;min-width:160px;font:inherit;padding:9px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink)}
+.tools button{font:inherit;color:inherit;cursor:pointer;padding:8px 13px;border:1.5px solid var(--line);border-radius:99px;background:var(--card)}
+.tools button.on{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:700}
+@media (prefers-color-scheme:dark){.tools button.on{color:#06201c}}
+.type{--c:#2563eb;display:flex;gap:10px;margin-bottom:12px}
+button.th{border:0;font:inherit;cursor:pointer;position:relative}
+.th{flex:none;width:84px;background:var(--c);color:#1f2937;border-radius:14px;padding:10px 6px;text-align:center;display:flex;flex-direction:column;justify-content:center}
+.th .r{font-size:26px;font-weight:800;line-height:1.1}
+.th .n{font-size:13px;font-weight:700;margin-top:2px;word-break:keep-all}
+.th .car{position:absolute;top:6px;right:8px;font-size:12px;opacity:.9;transition:transform .15s}
+.type.closed .car{transform:rotate(-90deg)}
+.type.closed .fams{display:none}
+.type.closed .th{flex:1;flex-direction:row;gap:12px;justify-content:flex-start;align-items:baseline;padding:12px 30px 12px 16px;text-align:left}
+.type.closed .th .r{font-size:22px}.type.closed .th small{margin:0}
+.th small{font-size:11px;opacity:.9;margin-top:2px;word-break:keep-all}
+.fams{flex:1;min-width:0;background:color-mix(in srgb,var(--c) 20%,var(--card));border:1.5px solid color-mix(in srgb,var(--c) 28%,var(--line));border-radius:14px;padding:4px 12px}
+.fam{display:grid;grid-template-columns:minmax(150px,230px) 1fr;gap:4px 14px;padding:10px 0;border-top:1px solid color-mix(in srgb,var(--c) 22%,var(--line))}
+.fam:first-child{border-top:0}
+.fn{font-weight:800;color:var(--d);font-size:16.5px;word-break:break-all}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .fn{color:var(--c)}}
+:root[data-theme="dark"] .fn{color:var(--c)}
+.fn small{display:block;font-weight:400;font-size:12px;color:var(--sub);word-break:keep-all}
+.env{display:inline-block;margin-top:4px;font-size:12px;font-weight:800;border-radius:99px;padding:1px 9px;color:#fff}
+.env.y{background:#c2410c}.env.n{background:#15803d}
+.gen{font-size:14.5px;word-break:keep-all}
+.gen div+div{margin-top:1px}
+.gen .none{color:var(--sub)}
+.foot{background:var(--card);border:1.5px solid color-mix(in srgb,var(--no) 55%,var(--line));border-radius:14px;padding:12px 14px;font-size:14.5px}
+.foot h2{font-size:16px;margin:0 0 6px;color:var(--no)}
+.foot p{margin:6px 0 0;color:var(--sub);font-size:13.5px}
+.empty{text-align:center;color:var(--sub);padding:30px 0}
+@media (max-width:560px){
+  .type{flex-direction:column;gap:6px}
+  .th{width:auto;flex-direction:row;gap:10px;justify-content:flex-start;align-items:baseline;padding:8px 30px 8px 14px;text-align:left}
+  .th .car{top:50%;margin-top:-8px}
+  .th .r{font-size:22px}.th small{margin:0}
+  .fam{grid-template-columns:1fr}
+}
+mark{background:color-mix(in srgb,#eab308 55%,transparent);color:inherit;border-radius:3px}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<script src="colors.js"></script>
+<script>
+// [과, 타입idx, 외피(1/0), 어원·메모, [[속, 질병], …]]
+const F=[
+["Poxviridae",0,1,"",[["Orthopoxvirus","백시니아 · 우두"],["Parapoxvirus","가성우두"],["Avipoxvirus",""],["Capripoxvirus","럼피스킨병"],["Suipoxvirus",""]]],
+["Asfarviridae",0,1,"이름의 유래: ASF",[["Asfivirus","아프리카돼지열병(ASF)"]]],
+["Iridoviridae",0,0,"Irido = 빛난다",[]],
+["Adenoviridae",0,0,"penton fiber: 특징적 spike",[["Aviadenovirus",""]]],
+["Herpesviridae",0,1,"Herpes = 부족하다 · 잠복감염",[["Simplexvirus","소 바이러스성 유방염(BHV-2)"],["Varicellovirus","돼지 가성광견병(오제스키병) · 소 전염성비기관지염(BHV-1)"],["Mardivirus","조류 마렉병"],["Iltovirus","조류 ILT"],["Macavirus","악성 카타르열"]]],
+["Polyomaviridae",0,0,"가축에서는 큰 문제 X",[]],
+["Papillomaviridae",0,0,"가축에서는 큰 문제 X",[["Papillomavirus","자궁경부암(HPV)"]]],
+["Parvoviridae",1,0,"Parvo = small",[["Protoparvovirinae","개 파보질환 · 고양이 범백혈구감소증 · 돼지 불임증(SMEDI)"]]],
+["Circoviridae",1,0,"Circo = 원(circle) · circular DNA",[["Circovirus","돼지 이유후 전신소모증후군(PMWS)"],["Gyrovirus","닭 빈혈"]]],
+["Reoviridae",2,0,"RNA 10~12 segment",[["Orbivirus","블루텅 · 아프리카마역"],["Rotavirus","포유류 · 조류 설사증"]]],
+["Birnaviridae",2,0,"Bi(2) + RNA · 2 segment",[["Aquabirnavirus","IPN(전염성췌장괴사)"],["Avibirnavirus","조류 IBD(F낭병)"]]],
+["Caliciviridae",3,0,"",[["Vesivirus","고양이 칼리시바이러스 감염 · 돼지 수포진"],["Norovirus","사람 바이러스성 식중독"]]],
+["Hepeviridae",3,0,"",[["Hepevirus","E형 간염"]]],
+["Flaviviridae",3,1,"Flavi = Yellow",[["Flavivirus","황열 · 일본뇌염 · 말 웨스트나일병 · 면양 Louping ill"],["Pestivirus","소 BVD-MD · 돼지열병(CSF) · 면양 Border disease"],["Hepacivirus","C형 간염"]]],
+["Togaviridae",3,1,"대부분 Arbovirus(절지동물 매개)",[["Alphavirus","동부말뇌척수염(EEV)"]]],
+["Picornaviridae",3,0,"Pico(작다) + RNA",[["Hepatovirus","A형 간염"],["Aphthovirus","구제역(FMD)"],["Erbovirus","말 비염"],["Teschovirus","돼지 테센병"],["Enterovirus","돼지 수포병"],["Senecavirus","Seneca valley virus 감염"],["Tremovirus","조류 뇌척수염"]]],
+["Arteriviridae",3,1,"Arteri = 동맥",[["Equarterivirinae","말 전염성 동맥염"],["Variarterivirinae","실험동물 LDH 상승 바이러스"],["Betaarterivirus","돼지 PRRS"]]],
+["Coronaviridae",3,1,"Corona = 왕관",[["Alphacoronavirus","돼지유행성설사증(PED) · 돼지 전염성위장염(TGE) · 개 코로나바이러스 · 고양이 전염성복막염(FIP)"],["Betacoronavirus","SARS · COVID-19"],["Gammacoronavirus","조류 전염성기관지염"],["Deltacoronavirus",""],["Torovirus","동물 설사증"]]],
+["Bornaviridae",4,1,"",[["Orthobornavirus","말 보르나병"]]],
+["Rhabdoviridae",4,1,"Rhabdo = 막대기",[["Lyssavirus","광견병"],["Vesiculovirus","수포성 구내염"]]],
+["Filoviridae",4,1,"",[["Ebolavirus","에볼라"]]],
+["Paramyxoviridae",4,1,"Myxo = 점액(호흡기)",[["Avulavirus","조류 뉴캐슬병"],["Rubulavirus","개 유행성이하선염"],["Morbillivirus","우역 · 개 디스템퍼"]]],
+["Pneumoviridae",4,1,"",[["Orthopneumovirus","소 호흡기 합포체 바이러스 감염"]]],
+["Peribunyaviridae",4,1,"",[["Orthobunyavirus","아카바네병"]]],
+["Hantaviridae",4,1,"한탄강 유역 · 흰등줄쥐가 전파",[["Orthohantavirus","유행성 출혈열(신부전증)"]]],
+["Phenuiviridae",4,1,"",[["Phlebovirus","면양 리프트밸리열"]]],
+["Orthomyxoviridae",4,1,"Myxo = 점액(호흡기)",[["Alpha · Beta · Gammainfluenzavirus","조류독감(AI)"]]],
+["Arenaviridae",4,1,"",[["Arenavirus","실험동물 림프구성 맥락수막염(LCM)"]]],
+["Retroviridae",5,1,"역전사효소",[["Lentivirus","AIDS(HIV 감염) · 고양이 FIV 감염"],["Gammaretrovirus","고양이 백혈병(FeLV)"],["Deltaretrovirus","소 백혈병"]]],
+["Hepadnaviridae",6,1,"hepa(간) + DNA · 역전사효소",[["Avihepadnavirus","오리 간염 B형"]]]
+];
+const T=window.VTYPES,$=document.getElementById("app");
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let env="all",q="";
+const shut=new Set();
+const hl=s=>{s=esc(s);if(!q)return s;const k=esc(q).replace(/[.*+?^${}()|[\]\\]/g,"\\$&");return s.replace(new RegExp(k,"gi"),m=>`<mark>${m}</mark>`)};
+const hit=f=>{
+  if(env==="y"&&!f[2]||env==="n"&&f[2])return false;
+  if(!q)return true;
+  const t=q.toLowerCase();
+  return [f[0],f[3],...f[4].flat()].some(x=>x.toLowerCase().includes(t));
+};
+function famHtml(f){
+  return `<div class="fam"><div><div class="fn">${hl(f[0])}${f[3]?`<small>${hl(f[3])}</small>`:""}</div><span class="env ${f[2]?"y":"n"}">외피 ${f[2]?"O":"X"}</span></div>
+  <div class="gen">${f[4].length?f[4].map(g=>`<div><b>${hl(g[0])}</b>${g[1]?`: ${hl(g[1])}`:""}</div>`).join(""):`<span class="none">—</span>`}</div></div>`;
+}
+function draw(){
+  const body=T.map((t,i)=>{
+    const fs=F.filter(f=>f[1]===i&&hit(f));
+    if(!fs.length)return"";
+    return `<section class="type${shut.has(i)?" closed":""}" style="--c:${t.c};--d:${t.d}"><button class="th" data-t="${i}" aria-expanded="${!shut.has(i)}"><span class="r">${t.r}</span><span class="n">${esc(t.n)}</span><small>${esc(t.k)} · ${fs.length}과</small><span class="car">▾</span></button><div class="fams">${fs.map(famHtml).join("")}</div></section>`;
+  }).join("");
+  document.getElementById("out").innerHTML=body||`<div class="empty">검색 결과가 없어요</div>`;
+}
+const naked=F.filter(f=>!f[2]).map(f=>f[0]);
+$.innerHTML=`<h1>바이러스 분류 정리표</h1><p class="sub">교재 기준 · 볼티모어 분류 · 외피 O/X 표기</p>
+<div class="memo"><b>암기:</b> DNA 2 (I ds · II ss) | RNA 3 (III ds · IV + · V −) | 역전사 2 (VI RNA · VII DNA) → <b>'+'가 먼저!</b></div>
+<div class="tools"><input id="q" type="search" placeholder="과·속·질병 검색 (예: 구제역, Flavi)" autocomplete="off"><button data-e="all" class="on">전체</button><button data-e="y">외피 O</button><button data-e="n">외피 X</button></div>
+<div class="tools fold"><button data-f="close">모두 접기</button><button data-f="open">모두 펼치기</button></div>
+<div id="out"></div>
+<div class="foot"><h2>외피 X 과 — 소독제 저항성 ↑ (모든 RNA 바이러스가 외피를 갖는 건 아님!)</h2>${naked.join(" · ")}<p>학습 순서: 질병 → 속 → 과 → 핵산 유형 · 외피</p></div>`;
+document.getElementById("q").oninput=e=>{q=e.target.value.trim();draw()};
+$.querySelector(".tools").onclick=e=>{const b=e.target.closest("button[data-e]");if(!b)return;env=b.dataset.e;$.querySelectorAll("button[data-e]").forEach(x=>x.classList.toggle("on",x===b));draw()};
+$.addEventListener("click",e=>{
+  const h=e.target.closest("button.th");
+  if(h){const i=+h.dataset.t;shut.has(i)?shut.delete(i):shut.add(i);draw();return}
+  const b=e.target.closest("button[data-f]");
+  if(b){if(b.dataset.f==="close")T.forEach((_,i)=>shut.add(i));else shut.clear();draw()}
+});
+draw();
+</script>
+</body>
+</html>

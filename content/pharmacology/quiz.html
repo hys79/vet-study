@@ -7,7 +7,7 @@
 <style>
 :root{--bg:#f4f7f6;--card:#fff;--ink:#14202b;--sub:#5b6b78;--line:#d5dede;--acc:#0f766e;--ok:#15803d;--okbg:#dcfce7;--no:#b91c1c;--nobg:#fee2e2;
 box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root{--bg:#10181d;--card:#18232a;--ink:#e8eef1;--sub:#97a8b3;--line:#2c3b44;--acc:#2dd4bf;--ok:#4ade80;--okbg:#14351f;--no:#f87171;--nobg:#3b1818}}
+@media (prefers-color-scheme:dark){.dif .seg button.on{color:#06201c}:root{--bg:#10181d;--card:#18232a;--ink:#e8eef1;--sub:#97a8b3;--line:#2c3b44;--acc:#2dd4bf;--ok:#4ade80;--okbg:#14351f;--no:#f87171;--nobg:#3b1818}}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:"Pretendard","Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;line-height:1.5}
 main{max-width:560px;margin:0 auto;padding:20px 16px 40px}
@@ -30,6 +30,24 @@ button,select{font:inherit;color:inherit;cursor:pointer}
 .scope .ul{font-size:14.5px;padding:5px 0 5px 4px;font-weight:400}
 .scope details summary{cursor:pointer;color:var(--sub);font-size:13px;margin:0 0 2px 26px}
 .scope input[type=checkbox]{width:18px;height:18px;accent-color:var(--acc);flex:none}
+.grp+.grp{border-top:1px solid var(--line);padding-top:12px;margin-top:12px}
+.gh{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+.gh>small{color:var(--sub);font-size:13px;line-height:1.4;flex:1}
+.dsw{display:flex;align-items:center;gap:7px;font-size:14px;cursor:pointer;flex:none;color:var(--sub)}
+.dsw input{display:none}
+.dsw i{width:44px;height:24px;border-radius:12px;background:var(--line);position:relative;transition:background .2s}
+.dsw i::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .2s}
+.dsw input:checked+i{background:var(--acc)}
+.dsw input:checked+i::after{left:23px}
+.dsw span.on{font-weight:700;color:var(--ink)}
+.dif{background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:12px 16px;margin-bottom:10px}
+.dif b{font-size:16px}
+.dif small{color:var(--sub);font-size:13px}
+.dif #dd{display:block;line-height:1.4}
+.dif .seg{display:flex;gap:6px;margin:8px 0 6px}
+.dif .seg button{flex:1;padding:9px 0;border:1.5px solid var(--line);border-radius:10px;background:transparent;font-size:15px}
+.dif .seg button.on{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:700}
+.opt small.os{display:block;color:var(--sub);font-size:12.5px;font-weight:400;margin-top:2px;word-break:keep-all}
 .back{background:none;border:0;color:var(--sub);font-size:16px;padding:6px 0;margin-bottom:4px}
 .bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin:6px 0 4px}
 .bar i{display:block;height:100%;background:var(--acc);transition:width .25s}
@@ -91,7 +109,7 @@ Object.keys(unitDrugs).forEach(u=>unitDrugs[u]=[...unitDrugs[u]]);
 const FAMOF={};P.fam.forEach((f,i)=>f.units.forEach(u=>FAMOF[u]=i));
 const famDrugs={};ALL.forEach(id=>{const u=(clsOf[id]||[]).map(g=>unitOf(g))[0];if(u!==undefined){const i=FAMOF[u];(famDrugs[i]=famDrugs[i]||[]).push(id)}});
 const ownLabels=id=>{const s=new Set();(clsOf[id]||[]).forEach(g=>{s.add(gl(g));s.add(catById[g.c].n)});return s};
-const clsHtml=id=>(clsOf[id]||[]).map(g=>{const c=catById[g.c];return`${esc(ulab(c.u))} › ${esc(c.n)}${g.g?" › <b>"+esc(g.g)+"</b>":""}`}).join("<br>");
+const clsHtml=id=>(clsOf[id]||[]).map(g=>{const c=catById[g.c];return`${esc(catPath(c))}${g.g?" › <b>"+esc(g.g)+"</b>":""}`}).join("<br>");
 
 // ── 약물 정보 색인 (분류·기전·용도·주의 … 항목) ──
 const LMAP={작용:"기전",수의학:"용도",증상:"중독",치료:"해독",교재:"특징"};
@@ -150,7 +168,7 @@ function pickNon(excl,unit,k){
   return pick.length===k?pick:null;
 }
 const union=(...ss)=>{const u=new Set();ss.forEach(s=>s&&s.forEach(x=>u.add(x)));return u};
-const ctx=g=>`<span class="ctx">${esc(ulab(unitOf(g)))} › ${esc(catById[g.c].n)}</span>`;
+const ctx=g=>`<span class="ctx">${esc(catPath(catById[g.c]))}</span>`;
 const drugCard=id=>`<b>${esc(dn(id))}</b><ul>${(D[id].ds||[]).map(t=>`<li>${bl(t)}</li>`).join("")}</ul><div class="dcc">${clsHtml(id)}</div>`;
 const clueHtml=cl=>`<span class="stmt">${cl.map(c=>`<b class="lb">${esc(c.l)}</b> ${esc(c.t)}`).join("<br>")}</span>`;
 const unitOfDrug=id=>{const g=(clsOf[id]||[])[0];return g?unitOf(g):""};
@@ -225,39 +243,125 @@ function genName2Info(labels,allowWrong){
   }
   return null;
 }
+// 4)·5) 분류 ↔ 약물  — 난이도(DIFF)에 따라 정답 단계와 오답을 고름
+//  쉬움  : 정답 = 큰 분류(카테고리), 오답 = 다른 계열에서
+//  보통  : 정답 = 큰 분류(카테고리), 오답 = 같은 단원·같은 계열이 섞임
+//  어려움: 정답 = 세부 분류, 오답 = 같은 카테고리의 형제 분류가 우선
+const DIFFS=[
+  ["easy","쉬움","큰 분류(카테고리) 단위 · 같은 계열·단원의 오답이 섞임"],
+  ["hard","어려움","세부 분류 단위 · 같은 분류 안의 형제 분류가 오답으로 나옴"]
+];
+let DIFF="easy";
+// 난이도는 '분류 유형'(c)과 '전체 랜덤'(m)이 따로 저장됨. 문제 생성 직전에 DIFF에 반영
+const DS={c:"easy",m:"easy"};
+try{if(localStorage.getItem("pharmaDiff")==="hard")DS.c="hard";if(localStorage.getItem("pharmaDiffMix")==="hard")DS.m="hard"}catch(e){}
+
+const keyOf=n=>String(n).split(" - ")[0].replace(/\(.*?\)/g,"").trim();      // '구충제 - 작용방식' → '구충제'
+const nz2=s=>String(s||"").replace(/\(.*?\)/g,"").replace(/\s+/g," ").trim().toLowerCase();
+const nested=(a,b)=>{const x=nz2(a),y=nz2(b);if(!x||!y)return false;return x===y||x.startsWith(y+" ")||y.startsWith(x+" ")};   // 상·하위 관계 이름(혈관 확장제 / 혈관 확장제 - nitrate계)
+const nestedDrugs=g=>{const s=new Set();P.groups.forEach(h=>{if(h!==g&&h.c===g.c&&nested(gl(h),gl(g)))h.d.forEach(x=>s.add(x))});return s};
+const sameFam=(u,v)=>FAMOF[u]===FAMOF[v];
+const diverse=(arr,key)=>{const seen=new Set(),a=[],b=[];arr.forEach(x=>{const k=key(x);if(seen.has(k))b.push(x);else{seen.add(k);a.push(x)}});return[...a,...b]};
+function takeK(order,k,name,keyf){
+  const out=[],sn=new Set(),sk=new Set();
+  for(const x of order){
+    if(out.length>=k)break;
+    const n=name(x);if(sn.has(n))continue;
+    const kk=keyf?keyf(x):null;if(kk&&sk.has(kk))continue;
+    sn.add(n);if(kk)sk.add(kk);out.push(x);
+  }
+  return out.length===k?out:null;
+}
+// 단원 이름과 카테고리 이름이 같으면 한 번만 표시 (예: 이뇨제 › 이뇨제 → 이뇨제)
+function catPath(c){const u=ulab(c.u),l=UL[c.u],sh=l?l.s:u;return nz2(sh)===nz2(c.n)||nz2(u)===nz2(c.n)?u:`${u} › ${c.n}`}
+const CATS=P.cats.filter(c=>catDrugs[c.i]&&catDrugs[c.i].size);
+
+// 오답 카테고리 k개 (쉬움·보통)
+function pickCats(c0,own,level,k){
+  const keys=new Set([...own].map(i=>keyOf(catById[i].n)));
+  const ok=CATS.filter(c=>!own.has(c.i)&&!keys.has(keyOf(c.n)));
+  const sameU=shuf(ok.filter(c=>c.u===c0.u)),sameF=shuf(ok.filter(c=>c.u!==c0.u&&sameFam(c.u,c0.u))),far=shuf(ok.filter(c=>!sameFam(c.u,c0.u)));
+  const fd=diverse(far,c=>FAMOF[c.u]);
+  let order;
+  {
+    const near=[sameU[0],sameF[0]].filter(Boolean);
+    for(const x of [...sameF.slice(1),...sameU.slice(1)]){if(near.length>=2)break;near.push(x)}
+    order=[...near,...fd,...sameF,...sameU];
+  }
+  return takeK(order,k,c=>c.n,c=>keyOf(c.n))||takeK(order,k,c=>c.n);
+}
+// 오답 세부 분류 k개 (어려움): 같은 카테고리의 형제 분류를 우선
+function pickGroups(g0,id,k){
+  const own=ownLabels(id),ownG=(clsOf[id]||[]).map(gl),l0=gl(g0),u0=unitOf(g0);
+  const bad=l=>own.has(l)||nested(l,l0)||ownG.some(o=>nested(l,o));
+  const ok=GQ.filter(g=>g!==g0&&!bad(gl(g)));
+  const sib=shuf(ok.filter(g=>g.c===g0.c)),sameU=shuf(ok.filter(g=>g.c!==g0.c&&unitOf(g)===u0)),sameF=shuf(ok.filter(g=>unitOf(g)!==u0&&sameFam(unitOf(g),u0))),far=shuf(ok.filter(g=>!sameFam(unitOf(g),u0)));
+  const order=[...sib.slice(0,2),...sameU.slice(0,1),...sameF.slice(0,1),...sib.slice(2),...sameU.slice(1),...sameF.slice(1),...far];
+  return takeK(order,k,gl);
+}
+// 오답 약물 k개: excl(정답 분류에 속하는 약물)은 제외. 어려움에서는 같은 카테고리의 다른 분류 약물이 우선
+function pickDrugs(excl,c0,level,k,banKey){
+  const ban=x=>excl.has(x)||(banKey&&(clsOf[x]||[]).some(g=>keyOf(catById[g.c].n)===banKey));
+  const u=c0.u;
+  const sib=shuf([...(catDrugs[c0.i]||[])].filter(x=>!excl.has(x)));
+  const sameU=shuf((unitDrugs[u]||[]).filter(x=>!ban(x)&&!sib.includes(x)));
+  const famL=shuf((famDrugs[FAMOF[u]]||[]).filter(x=>!ban(x)&&!sib.includes(x)&&!sameU.includes(x)));
+  const far=shuf(ALL.filter(x=>!ban(x)&&!sib.includes(x)&&!sameU.includes(x)&&!famL.includes(x)));
+  const fm=x=>FAMOF[unitOfDrug(x)];
+  let order;
+  if(level!=="hard"){
+    const near=[sameU[0],famL[0]].filter(Boolean);
+    for(const x of [...famL.slice(1),...sameU.slice(1)]){if(near.length>=2)break;near.push(x)}
+    order=[...near,...diverse(far,fm),...famL,...sameU];
+  }else order=[...sib.slice(0,2),...sameU.slice(0,1),...famL.slice(0,1),...sib.slice(2),...sameU.slice(1),...famL.slice(1),...far];
+  return takeK(order,k,dn);
+}
+const groupsHtml=c=>P.groups.filter(g=>g.c===c.i&&g.d.length).map(g=>`<b>${esc(gl(g))}</b>: ${g.d.map(x=>esc(dn(x))).join(", ")}`).join("<br>");
+
 // 4) 분류 → 약물 이름  (기출 예: 무스카린성 수용체 활성화를 차단하는 약물은?)
 function genB(){ // 분류에 속하는 약물
   const pool=GQ.filter(inScope);if(!pool.length)return null;
-  const g=rnd(pool),ex=union(catDrugs[g.c],LM[gl(g)]),non=pickNon(ex,unitOf(g),4);if(!non)return null;
-  const ans=rnd(g.d),opts=shuf([ans,...non]);
-  return{q:`다음 중 <b>「${esc(gl(g))}」</b>에 속하는 약물은?${ctx(g)}`,opts:opts.map(dn),a:opts.indexOf(ans),html:`<b>${esc(gl(g))}</b>: ${g.d.map(x=>esc(dn(x))).join(", ")}<br><br>${drugCard(ans)}`,key:"B"+g.c+gl(g)+ans};
+  const g=rnd(pool),c=catById[g.c];
+  if(DIFF==="hard"){
+    const ex=union(g.d,LM[gl(g)],nestedDrugs(g)),non=pickDrugs(ex,c,"hard",4,keyOf(c.n));if(!non)return null;
+    const ans=rnd(g.d),opts=shuf([ans,...non]);
+    return{q:`다음 중 <b>「${esc(gl(g))}」</b>에 속하는 약물은?${ctx(g)}`,opts:opts.map(dn),a:opts.indexOf(ans),html:`<b>${esc(gl(g))}</b>: ${g.d.map(x=>esc(dn(x))).join(", ")}<br><br>${drugCard(ans)}`,key:"B"+DIFF+g.c+gl(g)+ans};
+  }
+  const ex=union(catDrugs[c.i],LM[c.n]),non=pickDrugs(ex,c,DIFF,4,keyOf(c.n));if(!non)return null;
+  const ans=rnd([...ex]),opts=shuf([ans,...non]);
+  return{q:`다음 중 <b>「${esc(c.n)}」</b>에 속하는 약물은?<span class="ctx">${esc(ulab(c.u))}</span>`,opts:opts.map(dn),a:opts.indexOf(ans),html:`${groupsHtml(c)}<br><br>${drugCard(ans)}`,key:"B"+DIFF+c.i+ans};
 }
 function genC(){ // 속하지 않는 약물
-  if(Math.random()>=.4){
-    const pool=GQ.filter(g=>inScope(g)&&g.d.length>=4);if(!pool.length)return null;
-    const g=rnd(pool),non=pickNon(union(catDrugs[g.c],LM[gl(g)]),unitOf(g),1);if(!non)return null;
+  const pool=DIFF==="hard"?GQ.filter(g=>inScope(g)&&g.d.length>=4):[];
+  if(pool.length){
+    const g=rnd(pool),c=catById[g.c],non=pickDrugs(union(g.d,LM[gl(g)],nestedDrugs(g)),c,"hard",1,keyOf(c.n));if(!non)return null;
     const mem=shuf(g.d).slice(0,4),opts=shuf([non[0],...mem]);
-    return{q:`다음 중 <b>「${esc(gl(g))}」</b>에 속하지 않는 약물은?${ctx(g)}`,opts:opts.map(dn),a:opts.indexOf(non[0]),html:`<b>${esc(gl(g))}</b>: ${g.d.map(x=>esc(dn(x))).join(", ")}<br><b>${esc(dn(non[0]))}</b>은(는) 이 분류가 아님<br>${clsHtml(non[0])}`,key:"C"+g.c+gl(g)+non[0]};
+    return{q:`다음 중 <b>「${esc(gl(g))}」</b>에 속하지 않는 약물은?${ctx(g)}`,opts:opts.map(dn),a:opts.indexOf(non[0]),html:`<b>${esc(gl(g))}</b>: ${g.d.map(x=>esc(dn(x))).join(", ")}<br><b>${esc(dn(non[0]))}</b>은(는) 이 분류가 아님<br>${clsHtml(non[0])}`,key:"C"+DIFF+g.c+gl(g)+non[0]};
   }
   const cs=P.cats.filter(c=>sel.has(c.u)&&catDrugs[c.i]&&catDrugs[c.i].size>=4);if(!cs.length)return null;
-  const c=rnd(cs),non=pickNon(union(catDrugs[c.i],LM[c.n]),c.u,1);if(!non)return null;
+  const c=rnd(cs),non=pickDrugs(union(catDrugs[c.i],LM[c.n]),c,DIFF,1,keyOf(c.n));if(!non)return null;
   const mem=shuf([...catDrugs[c.i]]).slice(0,4),opts=shuf([non[0],...mem]);
-  return{q:`다음 중 <b>「${esc(c.n)}」</b>에 속하지 않는 약물은?<span class="ctx">${esc(ulab(c.u))}</span>`,opts:opts.map(dn),a:opts.indexOf(non[0]),html:`<b>${esc(c.n)}</b>: ${[...catDrugs[c.i]].map(x=>esc(dn(x))).join(", ")}<br><b>${esc(dn(non[0]))}</b>은(는) 이 분류가 아님<br>${clsHtml(non[0])}`,key:"C"+c.i+non[0]};
+  return{q:`다음 중 <b>「${esc(c.n)}」</b>에 속하지 않는 약물은?<span class="ctx">${esc(ulab(c.u))}</span>`,opts:opts.map(dn),a:opts.indexOf(non[0]),html:`${groupsHtml(c)}<br><b>${esc(dn(non[0]))}</b>은(는) 이 분류가 아님<br>${clsHtml(non[0])}`,key:"C"+DIFF+c.i+non[0]};
 }
 // 5) 약물 이름 → 분류
 function genA(){
   const pool=GQ.filter(inScope);if(!pool.length)return null;
-  const g0=rnd(pool),id=rnd(g0.d),own=ownLabels(id),u=unitOf(g0);
-  const sameU=[...new Set(GQ.filter(g=>unitOf(g)===u).map(gl))].filter(l=>!own.has(l));
-  const famL=[...new Set(GQ.filter(g=>FAMOF[unitOf(g)]===FAMOF[u]).map(gl))].filter(l=>!own.has(l)&&!sameU.includes(l));
-  const other=[...new Set(GQ.map(gl))].filter(l=>!own.has(l)&&!sameU.includes(l)&&!famL.includes(l));
-  const ds=[...shuf(sameU).slice(0,2),...shuf(famL).slice(0,2)].slice(0,3);
-  for(const l of shuf(other)){if(ds.length>=4)break;ds.push(l)}
-  if(ds.length<4)return null;
-  const opts=shuf([gl(g0),...ds]);
-  return{q:`다음 약물의 분류로 옳은 것은?<span class="stmt">${esc(dn(id))}</span>`,opts,a:opts.indexOf(gl(g0)),html:`${drugCard(id)}`,key:"A"+id+gl(g0)};
+  const g0=rnd(pool),id=rnd(g0.d),c0=catById[g0.c];
+  if(DIFF==="hard"){
+    const ds=pickGroups(g0,id,4);if(!ds)return null;
+    const all=shuf([g0,...ds]),sub=g=>{const c=catById[g.c];return gl(g)===c.n?ulab(c.u):catPath(c)};
+    return{q:`다음 약물의 분류로 옳은 것은?<span class="stmt">${esc(dn(id))}</span>`,opts:all.map(gl),sub:all.map(sub),a:all.indexOf(g0),html:drugCard(id),key:"A"+DIFF+id+gl(g0)};
+  }
+  const own=new Set((clsOf[id]||[]).map(g=>g.c)),ds=pickCats(c0,own,DIFF,4);if(!ds)return null;
+  const all=shuf([c0,...ds]);
+  return{q:`다음 약물의 분류로 옳은 것은?<span class="stmt">${esc(dn(id))}</span>`,opts:all.map(c=>c.n),sub:all.map(c=>ulab(c.u)),a:all.indexOf(c0),html:drugCard(id),key:"A"+DIFF+id+c0.i};
 }
 const GEN={i2n:[()=>genInfo2Name()],n2i:[()=>genName2Info(null,true)],c2n:[genB,genC],n2c:[genA]};
+const GROUPS=[
+  {t:"약물과 그 정보를 연결하는 유형",m:["n2i","i2n"]},
+  {t:"분류와 약물을 연결하는 유형 — 난이도 선택 가능",m:["n2c","c2n"],sw:"c"},
+  {t:"모든 유형을 섞어서 출제 — 분류 유형 문제에 난이도 적용",m:["mix"],sw:"m"}
+];
 const MODES=[
   ["i2n","정보 → 약물","분류·기전·용도·부작용·금기·해독 정보를 보고 약물 맞히기"],
   ["n2i","약물 → 정보","약물에 대한 옳은(옳지 않은) 설명 고르기"],
@@ -278,7 +382,7 @@ function home(){
   $.innerHTML=`<h1>약리학 퀴즈</h1><p class="sub">수의사 국가시험 · 약물 ${ALL.length}종 · 분류 ${GQ.length}개</p>
   <div class="scope"><div class="sh"><b>출제 범위</b><span id="scn"></span><button class="mini" id="sa">전체 선택</button><button class="mini" id="sn">전체 해제</button></div>`+
   FAMS.map((f,i)=>`<div class="fam"><label class="fl"><input type="checkbox" data-f="${i}"> ${f.icon} ${esc(f.name)}<small>${f.chunks.length>1?f.chunks.length+"개 범위":""}</small></label>${f.chunks.length>1?`<details><summary>세부 범위 선택</summary>${f.chunks.map((c,j)=>`<label class="ul"><input type="checkbox" data-c="${i}.${j}"> ${esc(c.n)}</label>`).join("")}</details>`:""}</div>`).join("")+`</div>`+
-  MODES.map(m=>`<button class="mode" data-m="${m[0]}"><b>${m[1]}</b><span>${m[2]}</span></button>`).join("");
+  GROUPS.map(g=>`<div class="grp"><div class="gh"><small>${g.t}</small>${g.sw?'<label class="dsw" data-k="'+g.sw+'"><span data-s="easy">쉬움</span><input type="checkbox" class="dchk"><i></i><span data-s="hard">어려움</span></label>':""}</div>${g.m.map(k=>{const m=MODES.find(x=>x[0]===k);return`<button class="mode" data-m="${m[0]}"><b>${m[1]}</b><span>${m[2]}</span></button>`}).join("")}</div>`).join("");
   const sc=$.querySelector(".scope");
   sc.onchange=e=>{
     const c=e.target,set=c.checked?(u=>sel.add(u)):(u=>sel.delete(u));
@@ -290,7 +394,10 @@ function home(){
   $.querySelector("#sn").onclick=()=>{sel=new Set();syncScope()};
   syncScope();
   $.querySelectorAll(".mode").forEach(b=>b.onclick=()=>start(b.dataset.m));
-  if(window.QNum)QNum.mount($.querySelector(".mode"));
+  if(window.QNum)QNum.mount($.querySelector(".grp"));
+  const syncD=()=>$.querySelectorAll(".dsw").forEach(w=>{const d=DS[w.dataset.k];w.querySelector("input").checked=d==="hard";w.querySelectorAll("span").forEach(p=>p.classList.toggle("on",p.dataset.s===d))});
+  $.querySelectorAll(".dchk").forEach(c=>c.onchange=()=>{const k=c.closest(".dsw").dataset.k;DS[k]=c.checked?"hard":"easy";try{localStorage.setItem(k==="c"?"pharmaDiff":"pharmaDiffMix",DS[k])}catch(err){}syncD()});
+  syncD();
 }
 function syncScope(){
   const st=us=>{const n=us.filter(u=>sel.has(u)).length;return[n===us.length,n>0&&n<us.length]};
@@ -301,22 +408,27 @@ function syncScope(){
   $.querySelector("#scn").textContent=`${on}/${tot} 범위`;
   try{localStorage.setItem("pharmaScope2",JSON.stringify([...sel]))}catch(e){}
 }
+let pushed=false;
+addEventListener("popstate",()=>{if(pushed){pushed=false;home()}});
+function goHome(){if(pushed)history.back();else home()}
 function start(mode,list){
+  DIFF=mode==="mix"?DS.m:DS.c;
   if(!list){
-    const n=window.QNum?QNum.get():20,qs=[],keys=new Set();
+    const n=window.QNum?QNum.get():15,qs=[],keys=new Set();
     for(let t=0;qs.length<n&&t<n*8;t++){const q=make(mode);if(q&&!keys.has(q.key)){keys.add(q.key);qs.push(q)}}
     if(!qs.length){$.innerHTML=`<button class="back" id="bk">← 뒤로</button><p class="sub" style="margin-top:20px">이 범위에서는 이 유형의 문제를 만들 수 없어요. 다른 유형이나 범위를 선택해 주세요.</p>`;document.getElementById("bk").onclick=home;return}
     list=qs;
   }
+  if(!pushed){history.pushState({q:1},"");pushed=true}
   S={mode,qs:list,i:0,score:0,wrong:[]};show();
 }
 function show(){
   const q=S.qs[S.i],n=S.qs.length;
   $.innerHTML=`<button class="back" id="bk">← 뒤로</button><div class="meta"><span>${S.i+1} / ${n}</span><span>정답 ${S.score}</span></div>
   <div class="bar"><i style="width:${S.i/n*100}%"></i></div>
-  <div class="q">${q.q}</div><div id="opts">${q.opts.map((o,i)=>`<button class="opt" data-sfx="none" data-i="${i}">${"①②③④⑤"[i]} ${esc(o)}</button>`).join("")}</div><div id="fb"></div>`;
+  <div class="q">${q.q}</div><div id="opts">${q.opts.map((o,i)=>`<button class="opt" data-sfx="none" data-i="${i}">${"①②③④⑤"[i]} ${esc(o)}${q.sub&&q.sub[i]?`<small class="os">${esc(q.sub[i])}</small>`:""}</button>`).join("")}</div><div id="fb"></div>`;
   $.querySelectorAll(".opt").forEach(b=>b.onclick=()=>pick(+b.dataset.i));
-  document.getElementById("bk").onclick=home;
+  document.getElementById("bk").onclick=goHome;
 }
 function pick(i){
   const q=S.qs[S.i];
@@ -335,7 +447,7 @@ function result(){
   (w.length?`<button class="btn" id="re">틀린 문제만 다시 풀기</button>`:"")+
   `<button class="btn alt" id="ag">같은 모드로 새 문제</button><button class="btn alt" id="hm">처음으로</button>`;
   if(w.length)g("re").onclick=()=>start(S.mode,shuf(w));
-  g("ag").onclick=()=>start(S.mode);g("hm").onclick=home;
+  g("ag").onclick=()=>start(S.mode);g("hm").onclick=goHome;
 }
 home();
 </script>
