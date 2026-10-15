@@ -256,7 +256,7 @@ function dragScroll(el){
 // ── 긴 내용을 읽다가 쉽게 닫기 ──
 // ① 열린 항목의 머리글은 화면 위에 붙어 있어 언제든 눌러서 닫을 수 있음
 // ② 오른쪽 아래 ‘닫기’ 버튼: 지금 읽고 있는 가장 안쪽 항목을 접고 그 머리글로 이동
-// ③ 계열·단원은 한 번에 하나만 열림(길이 줄이기)
+// ③ 계열(대분류)은 한 번에 하나만 열림, 상위 탭을 닫으면 하위 탭도 함께 닫힘
 const fab=$("fab");
 let fabTarget=null;
 function summaryOf(d){return d.firstElementChild}
@@ -289,7 +289,9 @@ fab.onclick=()=>{
 // 대분류(계열)만 한 번에 하나씩 열림. 나머지 탭은 여러 개를 동시에 열 수 있고, 눌러도 화면이 움직이지 않음
 $("app").addEventListener("toggle",e=>{
   const d=e.target;
-  if(!d.matches||!d.open)return;
+  if(!d.matches||!d.matches("details"))return;
+  // 상위 탭을 닫으면 그 안에 열려 있던 하위 탭도 함께 닫음 (다시 열었을 때 이전 상태가 남지 않도록)
+  if(!d.open){d.querySelectorAll("details[open]").forEach(o=>{o.open=false});updateFab();return}
   if(d.matches("details.unit:not(.refbox)"))d.style.setProperty("--uh",summaryOf(d).offsetHeight+"px");
   if(d.matches("details.fam")){
     // 다른 계열이 접히며 높이가 변해도, 누른 머리글이 화면에서 같은 위치에 있도록 보정
