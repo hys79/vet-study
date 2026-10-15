@@ -65,7 +65,17 @@ const tl=t=>T[t][0],ev=e=>e?"외피가 있다":"외피가 없다",ef=e=>e?"외�
 const stmt=(d,fam,t,e)=>`${d}의 원인 바이러스는 ${fam}에 속하는 ${tl(t)} 바이러스이며, ${ev(e)}.`;
 const other=(arr,x)=>shuf(arr.filter(v=>v!==x));
 function practice(){
-  const kind=rnd(["s1","s2","c1","c2","p1","g1"]),f=["c2","p1","g1"].includes(kind)?rnd(V):rnd(VD),d=f[3].length?rnd(f[3]):"";
+  // 외피 관련(c1·c2·g1·p1 일부)이 너무 많지 않도록 질병 → 과 / 유형 → 과 문제를 많이 섞음
+  const kind=rnd(["s1","s1","s2","s2","d5","d5","d5","t5","t5","c1","c2","p1","g1"]),f=["c2","p1","g1","t5"].includes(kind)?rnd(V):rnd(VD),d=f[3].length?rnd(f[3]):"";
+  if(kind==="d5"){
+    const near=other(V.filter(v=>v[1]===f[1]),f).slice(0,2),rest=other(V,f).filter(v=>!near.includes(v));
+    const ds=[...near,...shuf(rest)].slice(0,4),opts=shuf([f[0],...ds.map(v=>v[0])]);
+    return {q:`${d}의 원인 바이러스 과는?`,opts,a:opts.indexOf(f[0]),html:note(f)};
+  }
+  if(kind==="t5"){
+    const t=f[1],mem=V.filter(v=>v[1]===t),opts=shuf([f[0],...shuf(V.filter(v=>v[1]!==t)).slice(0,4).map(v=>v[0])]);
+    return {q:`${tl(t)}(${T[t][1]}형) 바이러스에 속하는 과는?`,opts,a:opts.indexOf(f[0]),html:`${chip(t)} 소속 과: ${mem.map(v=>v[0]).join(", ")}`};
+  }
   if(kind==="s1"){
     const g=other(V,f),t2=rnd(T.map((_,i)=>i).filter(i=>i!==f[1])),e2=f[2]?0:1;
     const ok=stmt(d,f[0],f[1],f[2]);
@@ -92,7 +102,7 @@ function practice(){
   }
   if(kind==="p1"){
     const dna=v=>[0,1,6].includes(v[1]);
-    const [lab,pr]=rnd([["DNA 바이러스",dna],["RNA 바이러스",v=>!dna(v)],["외피가 있는 바이러스",v=>v[2]===1],["외피가 없는 바이러스",v=>v[2]===0]]);
+    const [lab,pr]=rnd([["DNA 바이러스",dna],["RNA 바이러스",v=>!dna(v)],["DNA 바이러스",dna],["RNA 바이러스",v=>!dna(v)],["외피가 있는 바이러스",v=>v[2]===1],["외피가 없는 바이러스",v=>v[2]===0]]);
     const yes=V.filter(pr),no=V.filter(v=>!pr(v)),good=shuf(yes).slice(0,2),bad=[],ks=new Set();
     while(bad.length<4){const pr2=Math.random()<.5?shuf([rnd(yes),rnd(no)]):shuf(no).slice(0,2),k=pr2.map(v=>v[0]).sort().join();if(!ks.has(k)){ks.add(k);bad.push(pr2)}}
     const txt=x=>x.map(v=>v[0]).join(", "),ok=txt(good),opts=shuf([ok,...bad.map(txt)]);
