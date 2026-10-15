@@ -111,7 +111,7 @@ function famHtml(f){
 }
 function draw(){
   const body=T.map((t,i)=>{
-    const fs=F.filter(f=>f[1]===i&&hit(f));
+    const fs=F.filter(f=>f[1]===i&&hit(f)).sort((a,b)=>b[2]-a[2]||a[0].localeCompare(b[0]));
     if(!fs.length)return"";
     return `<section class="type${shut.has(i)?" closed":""}" style="--c:${t.c};--d:${t.d}"><button class="th" data-t="${i}" aria-expanded="${!shut.has(i)}"><span class="r">${t.r}</span><span class="n">${esc(t.n)}</span><small>${esc(t.k)} · ${fs.length}과</small><span class="car">▾</span></button><div class="fams">${fs.map(famHtml).join("")}</div></section>`;
   }).join("");
