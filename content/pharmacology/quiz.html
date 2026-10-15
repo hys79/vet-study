@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>약리학 퀴즈</title>
+<style>
+:root{--bg:#f4f7f6;--card:#fff;--ink:#14202b;--sub:#5b6b78;--line:#d5dede;--acc:#0f766e;--ok:#15803d;--okbg:#dcfce7;--no:#b91c1c;--nobg:#fee2e2;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root{--bg:#10181d;--card:#18232a;--ink:#e8eef1;--sub:#97a8b3;--line:#2c3b44;--acc:#2dd4bf;--ok:#4ade80;--okbg:#14351f;--no:#f87171;--nobg:#3b1818}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Pretendard","Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;line-height:1.5}
+main{max-width:560px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:26px;margin:8px 0 4px;letter-spacing:-.02em}
+p.sub{color:var(--sub);margin:0 0 20px;font-size:15px}
+button,select{font:inherit;color:inherit;cursor:pointer}
+.mode{display:block;width:100%;text-align:left;background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:10px}
+.mode b{display:block;font-size:18px}
+.mode span{color:var(--sub);font-size:14px}
+.mode:active,.mode:focus-visible{border-color:var(--acc);outline:none}
+.scope{background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:12px 16px;margin-bottom:10px}
+.sh{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.sh b{font-size:16px}
+.sh #scn{color:var(--acc);font-weight:700;font-size:14px;margin-right:auto}
+.mini{background:transparent;border:1.5px solid var(--line);border-radius:8px;padding:3px 9px;font-size:13px}
+.scope .fam{border-top:1px solid var(--line);padding:6px 0}
+.scope label{display:flex;align-items:center;gap:8px;cursor:pointer}
+.scope .fl{font-size:16px;font-weight:700;padding:4px 0}
+.scope .fl small{margin-left:auto;color:var(--sub);font-weight:400;font-size:12px}
+.scope .ul{font-size:14.5px;padding:5px 0 5px 4px;font-weight:400}
+.scope details summary{cursor:pointer;color:var(--sub);font-size:13px;margin:0 0 2px 26px}
+.scope input[type=checkbox]{width:18px;height:18px;accent-color:var(--acc);flex:none}
+.back{background:none;border:0;color:var(--sub);font-size:16px;padding:6px 0;margin-bottom:4px}
+.bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin:6px 0 4px}
+.bar i{display:block;height:100%;background:var(--acc);transition:width .25s}
+.meta{display:flex;justify-content:space-between;color:var(--sub);font-size:14px}
+.q{font-size:19px;font-weight:700;line-height:1.45;margin:22px 0 18px;letter-spacing:-.01em;word-break:keep-all}
+.q .ctx{display:block;font-size:13px;font-weight:400;color:var(--sub);margin-top:4px}
+.q .stmt{display:block;font-size:16px;font-weight:600;background:var(--card);border-left:4px solid var(--acc);border-radius:8px;padding:10px 12px;margin-top:10px;line-height:1.6}
+.lb{color:var(--acc)}
+.opt{display:block;width:100%;text-align:left;background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:13px 16px;margin-bottom:10px;font-size:16.5px;word-break:break-word}
+.opt:focus-visible{outline:2px solid var(--acc)}
+.opt.ok{background:var(--okbg);border-color:var(--ok);font-weight:700}
+.opt.no{background:var(--nobg);border-color:var(--no)}
+.opt[disabled]{cursor:default}
+.exp{background:var(--card);border-left:4px solid var(--acc);border-radius:8px;padding:12px 14px;margin:14px 0;font-size:15px}
+.exp ul{margin:4px 0 6px;padding-left:20px}
+.exp .dcc{color:var(--sub);font-size:13px}
+.btn{display:block;width:100%;background:var(--acc);color:#fff;border:0;border-radius:12px;padding:14px;font-size:17px;font-weight:700;margin-top:6px}
+.btn.alt{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.score{font-size:56px;font-weight:800;margin:10px 0 0;letter-spacing:-.03em}
+.wrong{background:var(--card);border-radius:12px;padding:12px 14px;margin-bottom:8px;font-size:15px}
+.wrong b{display:inline}
+.ans{color:var(--ok);font-weight:700}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<script src="data.js"></script>
+<script src="../../shared/qn.js"></script>
+<script src="../../shared/audio.js"></script>
+<script>
+const P=window.PHARMA,D=P.drugs,$=document.getElementById("app");
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const rnd=a=>a[Math.floor(Math.random()*a.length)];
+const shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+
+// ── 색인 ──
+const catById={};P.cats.forEach(c=>catById[c.i]=c);
+// 분류의 전체 이름: ql(지정된 전체 이름) → 뜻이 불분명한 묶음 하위 이름은 묶음(k)을 앞에 붙임 → 같은 이름이 다른 카테고리에도 있으면 카테고리 이름을 붙임
+const rawLabel=g=>g.ql||(g.k&&g.g&&g.g!==g.k&&/^[①-⑩]|^(세균|진균):|^(30S|50S) -/.test(g.g)?`${g.k} - ${g.g}`:g.g)||catById[g.c].n;
+const labCnt={};P.groups.forEach(g=>{const l=rawLabel(g);labCnt[l]=(labCnt[l]||0)+1});
+const gl=g=>{const l=rawLabel(g);return labCnt[l]>1&&!g.ql?`${catById[g.c].n} - ${l}`:l};
+const UL=P.ulab||{};
+const ulab=u=>{const l=UL[u];return l&&l.g?`${l.g} · ${l.s}`:(l?l.s:u)};
+const unitOf=g=>catById[g.c].u;
+const dn=id=>D[id].n;
+const ALL=Object.keys(D);
+const GQ=P.groups.filter(g=>!g.l&&g.d.length);   // 정답 후보 분류(약물이 있는 것)
+const clsOf={},catDrugs={},LM={},unitDrugs={};
+P.groups.forEach(g=>{
+  const c=catById[g.c];
+  g.d.forEach(id=>{
+    (clsOf[id]=clsOf[id]||[]).push(g);
+    (catDrugs[g.c]=catDrugs[g.c]||new Set()).add(id);
+    (unitDrugs[c.u]=unitDrugs[c.u]||new Set()).add(id);
+  });
+  [gl(g),c.n].forEach(l=>{LM[l]=LM[l]||new Set();g.d.forEach(x=>LM[l].add(x))});
+});
+Object.keys(unitDrugs).forEach(u=>unitDrugs[u]=[...unitDrugs[u]]);
+const FAMOF={};P.fam.forEach((f,i)=>f.units.forEach(u=>FAMOF[u]=i));
+const famDrugs={};ALL.forEach(id=>{const u=(clsOf[id]||[]).map(g=>unitOf(g))[0];if(u!==undefined){const i=FAMOF[u];(famDrugs[i]=famDrugs[i]||[]).push(id)}});
+const ownLabels=id=>{const s=new Set();(clsOf[id]||[]).forEach(g=>{s.add(gl(g));s.add(catById[g.c].n)});return s};
+const clsHtml=id=>(clsOf[id]||[]).map(g=>{const c=catById[g.c];return`${esc(ulab(c.u))} › ${esc(c.n)}${g.g?" › <b>"+esc(g.g)+"</b>":""}`}).join("<br>");
+
+// ── 약물 정보 색인 (분류·기전·용도·주의 … 항목) ──
+const LMAP={작용:"기전",수의학:"용도",증상:"중독",치료:"해독",교재:"특징"};
+function parse(t){const m=t.match(/^([^:]{1,14}):\s*(.*)$/);if(!m)return{l:"특징",t};let l=m[1].replace(/\(.*\)/,"").trim();return{l:LMAP[l]||l,t:m[2]}}
+const B={},TB={};
+ALL.forEach(id=>{
+  const d=D[id];
+  B[id]=(d.ds||[]).map(parse);
+  const tx=[];[d.no,d.us,d.ac,d.si].forEach(x=>(Array.isArray(x)?x:x?[x]:[]).forEach(s=>{if(typeof s==="string"&&s.length>=12&&s.length<=150&&!/c\.f\)/i.test(s))tx.push(s)}));
+  TB[id]=tx;
+});
+const bl=t=>{const m=t.match(/^([^:]{1,12}):\s*(.*)$/);return m?`<b class="lb">${esc(m[1])}</b> ${esc(m[2])}`:esc(t)};
+const NAMES={};
+ALL.forEach(id=>{NAMES[id]=[D[id].n,...(D[id].a||[])].map(x=>x.toLowerCase().replace(/\(.*\)/,"").trim()).filter(x=>x.length>=3)});
+const mentions=(id,text)=>{const t=String(text).toLowerCase();return NAMES[id].some(n=>t.includes(n))};
+
+// 문장 유사도(정답이 둘이 되는 문제 방지): 특이한 단어(여러 약물에 흔하지 않은 단어)를 공유하면 '겹침'으로 봄
+const PART=new Set(["은","는","이","가","을","를","의","에","로","과","와","도","만"]);
+function toks(text){
+  const out=new Set();
+  (String(text).toLowerCase().match(/[a-zα-ω][a-z0-9α-ω\-]{1,}|[가-힣]{2,}/g)||[]).forEach(w=>{
+    if(/[가-힣]/.test(w)){if(w.length>=3&&PART.has(w[w.length-1]))w=w.slice(0,-1);if(w.length<2)return}
+    else if(w.length<3)return;
+    out.add(w);
+  });
+  return out;
+}
+const DOC={},DF={};
+ALL.forEach(id=>{
+  const s=new Set();
+  B[id].filter(b=>b.l!=="분류").forEach(b=>toks(b.t).forEach(x=>s.add(x)));
+  TB[id].forEach(t=>toks(t).forEach(x=>s.add(x)));
+  DOC[id]=s;s.forEach(x=>DF[x]=(DF[x]||0)+1);
+});
+const SPEC=14;
+const SPEC2=60;   // 오답 판정은 더 넓은 범위(여러 약물에 나오는 단어까지)로 겹침을 검사
+const sigOf=text=>{const s=new Set();toks(text).forEach(x=>{if((DF[x]||0)<=SPEC)s.add(x)});return s};
+const wideOf=text=>{const s=new Set();toks(text).forEach(x=>{if((DF[x]||0)<=SPEC2)s.add(x)});return s};
+const conflict=(sig,id)=>[...sig].some(t=>DOC[id].has(t));
+
+// 출제 범위: 체크된 단원들 (기기에 저장되어 다음에도 유지)
+let sel=new Set(P.units);
+try{const s=JSON.parse(localStorage.getItem("pharmaScope2")||"null");if(Array.isArray(s)){const v=s.filter(u=>P.units.includes(u));if(v.length)sel=new Set(v)}}catch(e){}
+const inScope=g=>sel.has(unitOf(g));
+const drugInScope=id=>(clsOf[id]||[]).some(g=>sel.has(unitOf(g)));
+
+// 정답과 겹치지 않는 약물 k개 (같은 단원 약물을 절반 정도 섞어 그럴듯하게)
+function pickNon(excl,unit,k){
+  const same=shuf((unitDrugs[unit]||[]).filter(x=>!excl.has(x)));
+  const fam=shuf((famDrugs[FAMOF[unit]]||[]).filter(x=>!excl.has(x)&&!same.includes(x)));
+  const rest=shuf(ALL.filter(x=>!excl.has(x)&&!same.includes(x)&&!fam.includes(x)));
+  const pick=[],seen=new Set();
+  for(const x of [...same.slice(0,2),...fam.slice(0,Math.max(1,Math.ceil(k/2)-same.slice(0,2).length+1)),...rest,...same.slice(2),...fam]){
+    if(pick.length>=k)break;if(!seen.has(dn(x))){seen.add(dn(x));pick.push(x)}
+  }
+  return pick.length===k?pick:null;
+}
+const union=(...ss)=>{const u=new Set();ss.forEach(s=>s&&s.forEach(x=>u.add(x)));return u};
+const ctx=g=>`<span class="ctx">${esc(ulab(unitOf(g)))} › ${esc(catById[g.c].n)}</span>`;
+const drugCard=id=>`<b>${esc(dn(id))}</b><ul>${(D[id].ds||[]).map(t=>`<li>${bl(t)}</li>`).join("")}</ul><div class="dcc">${clsHtml(id)}</div>`;
+const clueHtml=cl=>`<span class="stmt">${cl.map(c=>`<b class="lb">${esc(c.l)}</b> ${esc(c.t)}`).join("<br>")}</span>`;
+const unitOfDrug=id=>{const g=(clsOf[id]||[])[0];return g?unitOf(g):""};
+
+// ── 문제 유형 ──
+// 1) 정보 → 약물  (기출 예: 두개 내압이 의심되는 환축에 가장 좋은 약물은? / 아나필락시스에 사용할 수 있는 약물은?)
+// 학습용이므로 약물의 분류·기전·용도·특징·부작용·금기·해독 정보를 가능한 한 모두 보여줌
+const ORDER=["분류","기전","용도","특징","주의","금기","중독","해독"];
+const sim=(a,b)=>{const A=DOC[a],B2=DOC[b];if(!A.size||!B2.size)return 0;let n=0;A.forEach(x=>{if(B2.has(x))n++});return n/Math.min(A.size,B2.size)};
+function genInfo2Name(){
+  const pool=ALL.filter(drugInScope);if(!pool.length)return null;
+  for(let t=0;t<120;t++){
+    const id=rnd(pool);
+    let clue=B[id].filter(b=>b.t.length>=4&&!mentions(id,b.t));
+    // 정보가 3개 미만이면 교재 문장으로 보충
+    const tb=TB[id].filter(x=>!mentions(id,x));
+    if(clue.length<3&&tb.length)clue=[...clue,...shuf(tb).slice(0,3-clue.length).map(x=>({l:"교재",t:x}))];
+    if(clue.length<3||!clue.some(c=>c.l!=="분류"))continue;
+    clue=clue.slice().sort((x,y)=>(ORDER.indexOf(x.l)<0?99:ORDER.indexOf(x.l))-(ORDER.indexOf(y.l)<0?99:ORDER.indexOf(y.l)));
+    const mates=[...new Set((clsOf[id]||[]).flatMap(g=>g.d))].filter(x=>x!==id);
+    const un=unitOfDrug(id);
+    const same=shuf((unitDrugs[un]||[]).filter(x=>x!==id&&!mates.includes(x)));
+    const fm=shuf((famDrugs[FAMOF[un]]||[]).filter(x=>x!==id&&!mates.includes(x)&&!same.includes(x)));
+    const rest=shuf(ALL.filter(x=>x!==id&&!mates.includes(x)&&!same.includes(x)&&!fm.includes(x)));
+    const order=[...shuf(mates).slice(0,2),...same.slice(0,2),...fm.slice(0,2),...rest,...same.slice(2),...fm.slice(2),...mates.slice(2)];
+    const ds=[],seen=new Set([dn(id)]);
+    for(const x of order){
+      if(ds.length>=4)break;
+      if(seen.has(dn(x))||clue.some(c=>mentions(x,c.t))||sim(id,x)>=.7)continue;   // 거의 같은 정보를 가진 약물은 제외
+      seen.add(dn(x));ds.push(x);
+    }
+    if(ds.length<4)continue;
+    const opts=shuf([id,...ds]);
+    return{q:`다음 정보에 모두 해당하는 약물은?${clueHtml(clue)}`,opts:opts.map(dn),a:opts.indexOf(id),html:drugCard(id),key:"I"+id};
+  }
+  return null;
+}
+// 2) 약물 이름 → 정보  (기출 예: Aspirin 장기간 복용 시 예상되는 부작용은?)
+const KO={기전:"작용기전",용도:"용도",주의:"부작용·주의사항",금기:"금기 사항",중독:"중독 시 소견",특징:"특징"};
+function genName2Info(labels,allowWrong){
+  const pool=ALL.filter(drugInScope);if(!pool.length)return null;
+  for(let t=0;t<80;t++){
+    const id=rnd(pool),doc=DOC[id];
+    const cand=B[id].filter(b=>b.l!=="분류"&&(!labels||labels.includes(b.l))&&b.t.length>=8&&sigOf(b.t).size>0);
+    if(!cand.length)continue;
+    const unit=unitOfDrug(id);
+    const okBullet=(x,b)=>b.t.length>=8&&!mentions(id,b.t)&&sigOf(b.t).size>0&&![...wideOf(b.t)].some(w=>doc.has(w));
+    if(allowWrong&&!labels&&B[id].length>=4&&Math.random()<.35){          // 옳지 않은 것 고르기
+      const trues=shuf(B[id]).slice(0,4),L=rnd(trues).l;
+      const pool2=[];
+      ALL.forEach(x=>{if(x===id)return;B[x].forEach(b=>{if(b.l===L&&okBullet(x,b))pool2.push({x,b})})});
+      if(!pool2.length)continue;
+      const farP=pool2.filter(p=>FAMOF[unitOfDrug(p.x)]!==FAMOF[unit]);
+      const f=rnd(farP.length?farP:pool2);
+      const raw=b=>`${b.l}: ${b.t}`;
+      const opts=shuf([...trues.map(raw),raw(f.b)]);
+      if(new Set(opts).size<5)continue;
+      return{q:`다음 중 <b>${esc(dn(id))}</b>에 대한 설명으로 <b>옳지 않은</b> 것은?`,opts,a:opts.indexOf(raw(f.b)),html:`${drugCard(id)}<div>틀린 설명은 <b>${esc(dn(f.x))}</b>의 내용이에요.</div>`,key:"W"+id+f.b.t};
+    }
+    const b=rnd(cand),L=b.l;
+    const pool2=[];
+    ALL.forEach(x=>{if(x===id)return;B[x].forEach(c=>{if(c.l===L&&c.t!==b.t&&okBullet(x,c))pool2.push({x,c})})});
+    const sameU=shuf(pool2.filter(p=>unitOfDrug(p.x)===unit)),others=shuf(pool2.filter(p=>unitOfDrug(p.x)!==unit));
+    const ds=[],seen=new Set([b.t]);
+    for(const p of [...sameU.slice(0,2),...others,...sameU.slice(2)]){if(ds.length>=4)break;if(seen.has(p.c.t))continue;seen.add(p.c.t);ds.push(p.c.t)}
+    if(ds.length<4)continue;
+    const opts=shuf([b.t,...ds]);
+    const q=L==="해독"?`다음 중 <b>${esc(dn(id))}</b> 중독(과량) 시 해독제로 사용하는 것은?`
+      :L==="주의"?`다음 중 <b>${esc(dn(id))}</b> 투여 시 예상되는 부작용·주의사항은?`
+      :`다음 중 <b>${esc(dn(id))}</b>의 ${KO[L]||L}에 대한 설명으로 옳은 것은?`;
+    return{q,opts,a:opts.indexOf(b.t),html:drugCard(id),key:"N"+id+b.t};
+  }
+  return null;
+}
+// 4) 분류 → 약물 이름  (기출 예: 무스카린성 수용체 활성화를 차단하는 약물은?)
+function genB(){ // 분류에 속하는 약물
+  const pool=GQ.filter(inScope);if(!pool.length)return null;
+  const g=rnd(pool),ex=union(catDrugs[g.c],LM[gl(g)]),non=pickNon(ex,unitOf(g),4);if(!non)return null;
+  const ans=rnd(g.d),opts=shuf([ans,...non]);
+  return{q:`다음 중 <b>「${esc(gl(g))}」</b>에 속하는 약물은?${ctx(g)}`,opts:opts.map(dn),a:opts.indexOf(ans),html:`<b>${esc(gl(g))}</b>: ${g.d.map(x=>esc(dn(x))).join(", ")}<br><br>${drugCard(ans)}`,key:"B"+g.c+gl(g)+ans};
+}
+function genC(){ // 속하지 않는 약물
+  if(Math.random()>=.4){
+    const pool=GQ.filter(g=>inScope(g)&&g.d.length>=4);if(!pool.length)return null;
+    const g=rnd(pool),non=pickNon(union(catDrugs[g.c],LM[gl(g)]),unitOf(g),1);if(!non)return null;
+    const mem=shuf(g.d).slice(0,4),opts=shuf([non[0],...mem]);
+    return{q:`다음 중 <b>「${esc(gl(g))}」</b>에 속하지 않는 약물은?${ctx(g)}`,opts:opts.map(dn),a:opts.indexOf(non[0]),html:`<b>${esc(gl(g))}</b>: ${g.d.map(x=>esc(dn(x))).join(", ")}<br><b>${esc(dn(non[0]))}</b>은(는) 이 분류가 아님<br>${clsHtml(non[0])}`,key:"C"+g.c+gl(g)+non[0]};
+  }
+  const cs=P.cats.filter(c=>sel.has(c.u)&&catDrugs[c.i]&&catDrugs[c.i].size>=4);if(!cs.length)return null;
+  const c=rnd(cs),non=pickNon(union(catDrugs[c.i],LM[c.n]),c.u,1);if(!non)return null;
+  const mem=shuf([...catDrugs[c.i]]).slice(0,4),opts=shuf([non[0],...mem]);
+  return{q:`다음 중 <b>「${esc(c.n)}」</b>에 속하지 않는 약물은?<span class="ctx">${esc(ulab(c.u))}</span>`,opts:opts.map(dn),a:opts.indexOf(non[0]),html:`<b>${esc(c.n)}</b>: ${[...catDrugs[c.i]].map(x=>esc(dn(x))).join(", ")}<br><b>${esc(dn(non[0]))}</b>은(는) 이 분류가 아님<br>${clsHtml(non[0])}`,key:"C"+c.i+non[0]};
+}
+// 5) 약물 이름 → 분류
+function genA(){
+  const pool=GQ.filter(inScope);if(!pool.length)return null;
+  const g0=rnd(pool),id=rnd(g0.d),own=ownLabels(id),u=unitOf(g0);
+  const sameU=[...new Set(GQ.filter(g=>unitOf(g)===u).map(gl))].filter(l=>!own.has(l));
+  const famL=[...new Set(GQ.filter(g=>FAMOF[unitOf(g)]===FAMOF[u]).map(gl))].filter(l=>!own.has(l)&&!sameU.includes(l));
+  const other=[...new Set(GQ.map(gl))].filter(l=>!own.has(l)&&!sameU.includes(l)&&!famL.includes(l));
+  const ds=[...shuf(sameU).slice(0,2),...shuf(famL).slice(0,2)].slice(0,3);
+  for(const l of shuf(other)){if(ds.length>=4)break;ds.push(l)}
+  if(ds.length<4)return null;
+  const opts=shuf([gl(g0),...ds]);
+  return{q:`다음 약물의 분류로 옳은 것은?<span class="stmt">${esc(dn(id))}</span>`,opts,a:opts.indexOf(gl(g0)),html:`${drugCard(id)}`,key:"A"+id+gl(g0)};
+}
+const GEN={i2n:[()=>genInfo2Name()],n2i:[()=>genName2Info(null,true)],c2n:[genB,genC],n2c:[genA]};
+const MODES=[
+  ["i2n","정보 → 약물","분류·기전·용도·부작용·금기·해독 정보를 보고 약물 맞히기"],
+  ["n2i","약물 → 정보","약물에 대한 옳은(옳지 않은) 설명 고르기"],
+  ["c2n","분류 → 약물","분류에 속하는(속하지 않는) 약물 고르기"],
+  ["n2c","약물 → 분류","약물이 속한 분류 고르기"],
+  ["mix","전체 랜덤","위 유형을 섞어서 (기출 스타일)"]
+];
+function make(mode){
+  const fns=mode==="mix"?Object.values(GEN).flat():GEN[mode];
+  for(let t=0;t<40;t++){const q=rnd(fns)();if(q)return q}
+  return null;
+}
+
+// ── 화면 ──
+let S={};
+const FAMS=P.fam;
+function home(){
+  $.innerHTML=`<h1>약리학 퀴즈</h1><p class="sub">수의사 국가시험 · 약물 ${ALL.length}종 · 분류 ${GQ.length}개</p>
+  <div class="scope"><div class="sh"><b>출제 범위</b><span id="scn"></span><button class="mini" id="sa">전체 선택</button><button class="mini" id="sn">전체 해제</button></div>`+
+  FAMS.map((f,i)=>`<div class="fam"><label class="fl"><input type="checkbox" data-f="${i}"> ${f.icon} ${esc(f.name)}<small>${f.chunks.length>1?f.chunks.length+"개 범위":""}</small></label>${f.chunks.length>1?`<details><summary>세부 범위 선택</summary>${f.chunks.map((c,j)=>`<label class="ul"><input type="checkbox" data-c="${i}.${j}"> ${esc(c.n)}</label>`).join("")}</details>`:""}</div>`).join("")+`</div>`+
+  MODES.map(m=>`<button class="mode" data-m="${m[0]}"><b>${m[1]}</b><span>${m[2]}</span></button>`).join("");
+  const sc=$.querySelector(".scope");
+  sc.onchange=e=>{
+    const c=e.target,set=c.checked?(u=>sel.add(u)):(u=>sel.delete(u));
+    if(c.dataset.f!==undefined)FAMS[+c.dataset.f].units.forEach(set);
+    else if(c.dataset.c!==undefined){const[i,j]=c.dataset.c.split(".").map(Number);FAMS[i].chunks[j].units.forEach(set)}
+    syncScope();
+  };
+  $.querySelector("#sa").onclick=()=>{sel=new Set(P.units);syncScope()};
+  $.querySelector("#sn").onclick=()=>{sel=new Set();syncScope()};
+  syncScope();
+  $.querySelectorAll(".mode").forEach(b=>b.onclick=()=>start(b.dataset.m));
+  if(window.QNum)QNum.mount($.querySelector(".mode"));
+}
+function syncScope(){
+  const st=us=>{const n=us.filter(u=>sel.has(u)).length;return[n===us.length,n>0&&n<us.length]};
+  $.querySelectorAll("input[data-f]").forEach(c=>{const[a,b]=st(FAMS[+c.dataset.f].units);c.checked=a;c.indeterminate=b});
+  let on=0,tot=0;
+  $.querySelectorAll("input[data-c]").forEach(c=>{const[i,j]=c.dataset.c.split(".").map(Number),[a,b]=st(FAMS[i].chunks[j].units);c.checked=a;c.indeterminate=b});
+  FAMS.forEach(f=>f.chunks.forEach(ch=>{tot++;if(ch.units.every(u=>sel.has(u)))on++}));
+  $.querySelector("#scn").textContent=`${on}/${tot} 범위`;
+  try{localStorage.setItem("pharmaScope2",JSON.stringify([...sel]))}catch(e){}
+}
+function start(mode,list){
+  if(!list){
+    const n=window.QNum?QNum.get():20,qs=[],keys=new Set();
+    for(let t=0;qs.length<n&&t<n*8;t++){const q=make(mode);if(q&&!keys.has(q.key)){keys.add(q.key);qs.push(q)}}
+    if(!qs.length){$.innerHTML=`<button class="back" id="bk">← 뒤로</button><p class="sub" style="margin-top:20px">이 범위에서는 이 유형의 문제를 만들 수 없어요. 다른 유형이나 범위를 선택해 주세요.</p>`;document.getElementById("bk").onclick=home;return}
+    list=qs;
+  }
+  S={mode,qs:list,i:0,score:0,wrong:[]};show();
+}
+function show(){
+  const q=S.qs[S.i],n=S.qs.length;
+  $.innerHTML=`<button class="back" id="bk">← 뒤로</button><div class="meta"><span>${S.i+1} / ${n}</span><span>정답 ${S.score}</span></div>
+  <div class="bar"><i style="width:${S.i/n*100}%"></i></div>
+  <div class="q">${q.q}</div><div id="opts">${q.opts.map((o,i)=>`<button class="opt" data-sfx="none" data-i="${i}">${"①②③④⑤"[i]} ${esc(o)}</button>`).join("")}</div><div id="fb"></div>`;
+  $.querySelectorAll(".opt").forEach(b=>b.onclick=()=>pick(+b.dataset.i));
+  document.getElementById("bk").onclick=home;
+}
+function pick(i){
+  const q=S.qs[S.i];
+  $.querySelectorAll(".opt").forEach((b,k)=>{b.disabled=true;if(k===q.a)b.classList.add("ok");else if(k===i)b.classList.add("no")});
+  if(i===q.a){S.score++;window.SFX&&SFX.ok()}else{S.wrong.push(q);window.SFX&&SFX.no()}
+  const last=S.i===S.qs.length-1;
+  document.getElementById("fb").innerHTML=`<div class="exp">${i===q.a?"정답!":"오답"} · ${q.html}</div><button class="btn" id="nx">${last?"결과 보기":"다음 문제"}</button>`;
+  const nx=document.getElementById("nx");nx.onclick=()=>{if(last)result();else{S.i++;show()}};nx.focus();
+}
+function result(){
+  window.SFX&&SFX.done();
+  const n=S.qs.length,w=S.wrong,g=id=>document.getElementById(id);
+  $.innerHTML=`<div class="meta"><span>결과</span></div><div class="score">${S.score} / ${n}</div>
+  <p class="sub">${w.length?`틀린 문제 ${w.length}개를 다시 풀어보세요.`:"전부 맞혔어요!"}</p>`+
+  w.map(q=>`<div class="wrong"><div class="q" style="font-size:16px;margin:0 0 6px">${q.q}</div><span class="ans">정답: ${esc(q.opts[q.a])}</span><br>${q.html}</div>`).join("")+
+  (w.length?`<button class="btn" id="re">틀린 문제만 다시 풀기</button>`:"")+
+  `<button class="btn alt" id="ag">같은 모드로 새 문제</button><button class="btn alt" id="hm">처음으로</button>`;
+  if(w.length)g("re").onclick=()=>start(S.mode,shuf(w));
+  g("ag").onclick=()=>start(S.mode);g("hm").onclick=home;
+}
+home();
+</script>
+</body>
+</html>

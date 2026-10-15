@@ -13,5 +13,16 @@ window.TOPICS = [
     items: [
       { type: "quiz", title: "바이러스 분류 퀴즈", file: "content/virus-classification/quiz.html" }
     ]
+  },
+  {
+    id: "pharmacology",
+    subject: "약리학",
+    title: "약리학",
+    desc: "약물 649종 · 분류별 정리 · 약물/분류 퀴즈",
+    emoji: "💊",
+    items: [
+      { type: "note", title: "약물 분류 정리", file: "content/pharmacology/notes.html" },
+      { type: "quiz", title: "약리학 퀴즈", file: "content/pharmacology/quiz.html" }
+    ]
   }
 ];

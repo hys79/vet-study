@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>약리학 정리</title>
+<style>
+:root{--bg:#f4f7f6;--card:#fff;--ink:#14202b;--sub:#5b6b78;--line:#d5dede;--acc:#0f766e;--accbg:#e1f3f0}
+@media (prefers-color-scheme:dark){:root{--bg:#10181d;--card:#18232a;--ink:#e8eef1;--sub:#97a8b3;--line:#2c3b44;--acc:#2dd4bf;--accbg:#12332f}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Pretendard","Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;line-height:1.55}
+main{max-width:760px;margin:0 auto;padding:20px 16px 90px}
+h1{font-size:26px;margin:8px 0 4px;letter-spacing:-.02em}
+p.sub{color:var(--sub);margin:0 0 12px;font-size:15px}
+button{font:inherit;color:inherit;cursor:pointer}
+.notice{background:var(--accbg);border-left:4px solid var(--acc);border-radius:8px;padding:9px 12px;font-size:13.5px;margin:0 0 14px}
+#q{width:100%;font:inherit;color:inherit;background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px}
+#q:focus{outline:2px solid var(--acc);border-color:var(--acc)}
+.navchips{display:flex;gap:6px;overflow-x:auto;padding:2px 2px 10px;scrollbar-width:thin;scrollbar-color:var(--line) transparent;cursor:grab;user-select:none;-webkit-overflow-scrolling:touch}
+.navchips.drag{cursor:grabbing}
+.navchips::-webkit-scrollbar{height:6px}
+.navchips::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
+.navchips button{flex:none;background:var(--card);border:1.5px solid var(--line);border-radius:99px;padding:5px 12px;font-size:14px;white-space:nowrap}
+.navchips button:hover,.navchips button:focus-visible{border-color:var(--acc);outline:none}
+
+/* 계열(최상위) · 단원 · 참고 — 열린 상태에서는 머리글이 위에 붙어 있어 언제든 눌러 닫을 수 있음 */
+details.fam{background:var(--card);border:1.5px solid var(--line);border-radius:16px;margin-bottom:12px}
+details.fam>summary{padding:16px 18px;font-weight:800;font-size:20px;cursor:pointer;list-style:none;display:flex;align-items:center;gap:10px;border-radius:14px}
+details.fam>summary::-webkit-details-marker{display:none}
+details.fam>summary::after{content:"▾";color:var(--sub);margin-left:6px;transition:transform .15s}
+details.fam[open]>summary::after{transform:rotate(180deg)}
+details.fam>summary small{color:var(--sub);font-weight:400;font-size:13px;margin-left:auto}
+details.fam>summary .ic{font-size:22px}
+.fbody{padding:4px 12px 12px;border-top:1px solid var(--line);background:var(--bg);border-radius:0 0 14px 14px}
+details.unit{background:var(--card);border:1.5px solid var(--line);border-radius:14px;margin-top:10px}
+.ugrp{margin-top:14px;padding-left:10px;border-left:3px solid var(--acc)}
+.ugl{font-size:12.5px;font-weight:700;color:var(--sub);letter-spacing:.02em;margin-bottom:-4px}
+.ugrp>details.unit:first-of-type{margin-top:6px}
+.grp.flat{border-left:0;padding:2px 0;margin:4px 0 8px}
+details.unit>summary{padding:12px 16px;font-weight:700;font-size:17px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:10px;align-items:center;border-radius:12px;background:var(--card)}
+details.unit>summary::-webkit-details-marker{display:none}
+details.unit>summary::after{content:"▾";color:var(--sub);transition:transform .15s}
+details.unit[open]>summary::after{transform:rotate(180deg)}
+details.unit>summary small{color:var(--sub);font-weight:400;font-size:13px;margin-left:auto}
+details.unit[open]>summary{position:sticky;top:0;z-index:5;border-bottom:1px solid var(--line);border-radius:12px 12px 0 0;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+/* 2단계 소분류 탭(카테고리·참고): 단원 머리글 바로 아래에 붙음 */
+details.sub{background:var(--card);border:1.5px solid var(--line);border-radius:12px;margin-top:8px}
+details.sub>summary{padding:10px 14px;font-weight:700;font-size:16px;color:var(--acc);cursor:pointer;list-style:none;display:flex;gap:8px;align-items:center;background:var(--card);border-radius:10px}
+details.sub>summary::-webkit-details-marker{display:none}
+details.sub>summary::after{content:"▾";color:var(--sub);transition:transform .15s}
+details.sub[open]>summary::after{transform:rotate(180deg)}
+details.sub>summary small{color:var(--sub);font-weight:400;font-size:13px;margin-left:auto}
+details.sub[open]>summary{position:sticky;top:var(--uh,52px);z-index:4;border-bottom:1px solid var(--line);border-radius:10px 10px 0 0}
+.subbody{padding:4px 12px 12px}
+/* 3단계 탭(분류 묶음·참고 주제) */
+details.tab3{border-top:1px solid var(--line)}
+details.tab3:first-child{border-top:0}
+details.tab3>summary{padding:9px 2px;font-weight:700;font-size:15px;cursor:pointer;list-style:none;display:flex;gap:8px;align-items:center}
+details.tab3>summary::-webkit-details-marker{display:none}
+details.tab3>summary::before{content:"▸";color:var(--sub);width:12px;transition:transform .15s}
+details.tab3[open]>summary::before{transform:rotate(90deg)}
+details.tab3>summary small{color:var(--sub);font-weight:400;font-size:13px;margin-left:auto}
+details.refbox details.tab3>summary{color:var(--acc)}
+.t3body{padding:0 2px 10px 18px}
+.cg{margin:8px 0 12px}
+.cg h5{margin:0 0 4px;font-size:14.5px}
+details.refbox{border-style:dashed}
+.body{padding:2px 16px 14px}
+.cat{margin-top:14px}
+.cat h3{font-size:16px;margin:0 0 6px;color:var(--acc)}
+.grp{margin:8px 0 10px;padding:8px 10px;border-left:3px solid var(--line)}
+.gn{font-weight:700;font-size:15px;margin-bottom:5px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{background:var(--accbg);color:var(--ink);border:1px solid transparent;border-radius:99px;padding:3px 11px;font-size:14px}
+.chip:hover,.chip:focus-visible{border-color:var(--acc);outline:none}
+details.more{margin:6px 0 0}
+details.more>summary{cursor:pointer;color:var(--sub);font-size:14px}
+dl{margin:6px 0;font-size:14.5px}
+dt{font-weight:700;margin-top:6px;color:var(--sub);font-size:13px}
+dd{margin:2px 0 4px 10px}
+ul{margin:3px 0 6px;padding-left:20px}
+li{margin:2px 0}
+
+/* 참고 본문 */
+.rs{padding:2px 0 6px;border-bottom:1px dashed var(--line)}
+.rs:last-child{border-bottom:0}
+h4.rt{margin:14px 0 4px;font-size:16px;color:var(--acc)}
+.t3body h5{margin:10px 0 2px;font-size:14.5px}
+.t3body p{margin:4px 0}
+.tw{overflow-x:auto;margin:6px 0 8px}
+.tw table{border-collapse:collapse;width:100%;font-size:14px}
+.tw th,.tw td{border:1px solid var(--line);padding:6px 9px;text-align:left;vertical-align:top}
+.tw th{background:var(--accbg);white-space:nowrap}
+
+.res h2{font-size:16px;margin:18px 0 8px;color:var(--sub)}
+.res .grp{background:var(--card);border:1.5px solid var(--line);border-radius:12px;border-left-width:1.5px}
+.path{color:var(--sub);font-size:13px;margin-bottom:3px}
+.empty{color:var(--sub);text-align:center;padding:40px 0}
+
+/* 떠 있는 닫기 버튼 */
+#fab{position:fixed;right:14px;bottom:calc(env(safe-area-inset-bottom) + 16px);z-index:30;max-width:70vw;background:var(--acc);color:var(--bg);border:0;border-radius:99px;padding:11px 18px;font-size:15px;font-weight:700;box-shadow:0 4px 14px rgba(0,0,0,.3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#fab[hidden]{display:none}
+
+/* 약물 상세 시트: 머리글 고정, 본문만 스크롤 */
+#sheetbg{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;z-index:40;padding:16px}
+#sheetbg.on{display:flex;align-items:center;justify-content:center;animation:fade .15s ease-out}
+#sheet{background:var(--card);width:min(640px,100%);max-height:min(86vh,820px);display:flex;flex-direction:column;border-radius:18px;box-shadow:0 18px 60px rgba(0,0,0,.45);animation:pop .18s ease-out}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes pop{from{transform:translateY(10px) scale(.97);opacity:0}to{transform:none;opacity:1}}
+#sh-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:14px 18px 10px;border-bottom:1px solid var(--line)}
+#sh-body{overflow:auto;padding:0 18px 28px}
+#sh-top h2{margin:0;font-size:22px;letter-spacing:-.01em;word-break:break-word}
+#sh-top .x{background:none;border:1.5px solid var(--line);border-radius:50%;width:36px;height:36px;flex:none;font-size:16px}
+#sheet h4{margin:14px 0 4px;font-size:13px;color:var(--sub)}
+#sheet .alias{color:var(--sub);font-size:14px;margin-top:2px}
+#sheet ul.lead{margin:14px 0 4px;padding:10px 12px 10px 30px;background:var(--accbg);border-left:4px solid var(--acc);border-radius:8px;font-size:15px;list-style:disc}
+#sheet ul.lead li{margin:3px 0}
+#sheet .lb{color:var(--acc)}
+#sheet .tags{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 6px}
+#sheet .tag{background:var(--bg);border:1px solid var(--line);border-radius:99px;padding:2px 10px;font-size:13px}
+#sheet p{margin:6px 0 2px;font-size:15px}
+#sheet .sub2{margin:8px 0 2px;font-size:12.5px;font-weight:700;color:var(--sub)}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<button id="fab" hidden></button>
+<div id="sheetbg"><div id="sheet" role="dialog" aria-modal="true"><div id="sh-top"></div><div id="sh-body"></div></div></div>
+<script src="data.js"></script>
+<script src="../../shared/audio.js"></script>
+<script>
+const P=window.PHARMA,D=P.drugs;
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const inl=s=>esc(s).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>");
+const LBL={site:"작용 부위",mechanism:"기전",characteristics:"특징",indications:"적응증",adverse:"부작용",contraindications:"금기",contraindication:"금기",uses:"용도",use:"용도",clinical_use:"임상 용도",therapeutic_use:"치료 용도",general:"일반",overview:"개요",note:"참고",type:"종류",members_labels:"구성 계열",members:"구성",mixtures:"혼합제",effects:"효과",class_info:"계열별 정보",group_info:"분류별 정보",subgroups:"세부 분류",ion_info:"이온 정보",classes:"계열"};
+Object.assign(LBL,{effect:"효과",pharmacokinetics:"약동학",actions:"작용",action:"작용",applications:"응용",side_effects:"부작용",side_effect:"부작용",notes:"참고",class_I_note:"Class I 설명",treatment_goals:"치료 목표",intro:"소개",labels:"하위 계열 표기",coccidium_mechanism:"콜시듐 작용 기전",irreversible:"비가역적",reversible:"가역적",binding_sites:"결합 부위",therapeutic_use:"치료 용도",intensity_of_depression:"억제 강도",repolarization:"재분극",receptors:"수용체",endocrine:"내분비"});
+const lbl=k=>LBL[k]||k;
+
+// 색인
+const catById={};P.cats.forEach(c=>catById[c.i]=c);
+const unitCats={};P.units.forEach(u=>unitCats[u]=[]);P.cats.forEach(c=>(unitCats[c.u]=unitCats[c.u]||[]).push(c));
+const groupsOf={};P.groups.forEach(g=>(groupsOf[g.c]=groupsOf[g.c]||[]).push(g));
+const clsOf={};P.groups.forEach(g=>g.d.forEach(id=>(clsOf[id]=clsOf[id]||[]).push(g)));
+const gl=g=>g.g||catById[g.c].n;
+// 단원 이름 간소화: 묶음(g)은 작은 글씨 머리글, s는 짧은 이름
+const UL=P.ulab||{};
+const us=u=>(UL[u]&&UL[u].s)||u;
+const ulab=u=>{const l=UL[u];return l&&l.g?`${l.g} · ${l.s}`:us(u)};
+const norm=s=>String(s).replace(/\(.*?\)/g,"").replace(/[^0-9A-Za-z가-힣]/g,"").toLowerCase();
+const sameName=(a,b)=>{const x=norm(a),y=norm(b);return !!x&&x===y};
+
+// 교재 DB 원문(분류 설명 등)을 그대로 펼쳐 보여주는 트리
+function tree(o){
+  if(o==null)return"";
+  if(o&&typeof o==="object"&&!Array.isArray(o)&&Object.keys(o).length===1&&typeof o.text==="string")o=o.text;
+  if(typeof o!=="object")return`<span>${esc(o)}</span>`;
+  if(Array.isArray(o))return o.length===1&&typeof o[0]!=="object"?tree(o[0]):`<ul>${o.map(x=>`<li>${tree(x)}</li>`).join("")}</ul>`;
+  return`<dl>${Object.entries(o).map(([k,v])=>`<dt>${esc(lbl(k))}</dt><dd>${tree(v)}</dd>`).join("")}</dl>`;
+}
+
+// 참고(AI 작성) 본문: 글머리 · 소제목 · 문단 · 표
+function table(rows){const[h,...b]=rows;return`<div class="tw"><table><thead><tr>${h.map(c=>`<th>${inl(c)}</th>`).join("")}</tr></thead><tbody>${b.map(r=>`<tr>${r.map(c=>`<td>${inl(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`}
+function blocks(items){
+  let html="",ul=[];
+  const flush=()=>{if(ul.length){html+=`<ul>${ul.map(x=>`<li>${x}</li>`).join("")}</ul>`;ul=[]}};
+  for(const it of items){
+    if(typeof it==="string"){ul.push(inl(it));continue}
+    flush();
+    if(it.h)html+=`<h5>${inl(it.h)}</h5>`+blocks(it.i);
+    else if(it.p)html+=`<p>${inl(it.p)}</p>`;
+    else if(it.table)html+=table(it.table);
+  }
+  flush();return html;
+}
+const refBox=(secs,lvl)=>`<details class="${lvl==="sub"?"sub":"unit"} refbox"><summary>📎 참고<small>${secs.length}개 주제</small></summary><div class="${lvl==="sub"?"subbody":"body"}">${secs.map(x=>`<details class="tab3"><summary>${inl(x.t)}</summary><div class="t3body">${blocks(x.i)}</div></details>`).join("")}</div></details>`;
+
+const chips=ids=>`<div class="chips">${ids.map(id=>D[id]?`<button class="chip" data-id="${esc(id)}">${esc(D[id].n)}</button>`:"").join("")}</div>`;
+// 분류가 많은 카테고리는 build에서 붙인 덩어리(k)별로 접이식 탭 하나씩, 탭 안에서는 소제목으로 분류를 나눔
+function clusterBlock(gs){
+  const order=[],map={};
+  gs.forEach(g=>{if(!map[g.k]){map[g.k]=[];order.push(g.k)}map[g.k].push(g)});
+  return order.map(k=>{
+    const arr=map[k],n=new Set(arr.flatMap(g=>g.d)).size;
+    const body=arr.map(g=>{
+      const nm=g.g?(g.g===k?"":(g.g.startsWith(k+" - ")?g.g.slice(k.length+3):g.g)):"";
+      return`<div class="cg">${nm?`<h5>${esc(nm)}</h5>`:""}${g.d.length?chips(g.d):""}${g.i?`<details class="more"><summary>기전·특징 보기</summary>${tree(g.i)}</details>`:""}</div>`;
+    }).join("");
+    return`<details class="tab3"><summary>${esc(k)}<small>${n}종</small></summary><div class="t3body">${body}</div></details>`;
+  }).join("");
+}
+function group(g,withPath){
+  const c=catById[g.c];
+  // 분류 이름이 위의 카테고리 이름과 같으면(또는 분류 전체이면) 제목을 생략해 중복을 없앰
+  const showTitle=withPath||(g.g&&!sameName(g.g,c.n));
+  return`<div class="grp${showTitle?"":" flat"}">${withPath?`<div class="path">${esc(ulab(c.u))} › ${esc(c.n)}</div>`:""}${showTitle?`<div class="gn">${esc(gl(g))}${g.g?"":" <small style='color:var(--sub);font-weight:400'>(분류 전체)</small>"}</div>`:""}${g.d.length?chips(g.d):""}${g.i?`<details class="more"><summary>기전·특징 보기</summary>${tree(g.i)}</details>`:""}</div>`;
+}
+
+function home(){
+  const total=Object.keys(D).length;
+  $("app").innerHTML=`<h1>약리학 정리</h1><p class="sub">약물 ${total}종 · 분류 ${P.cats.length}개 · 단원 ${P.units.length}개 — 약물 이름을 누르면 상세 내용이 나와요</p>
+  <div class="notice">📎 각 계열·단원의 <b>‘참고’</b> 칸과 약물 정보 창 위쪽의 <b>분류·기전·용도·주의 목록</b>은 <b>AI가 작성</b>했습니다(교재 내용을 다듬고 수의학 보충 정보를 추가). 교재 원문은 정보 창의 ‘정보’ 항목에 따로 있으니, 시험 전에 서로 대조하세요.</div>
+  <input id="q" type="search" placeholder="약물·분류 검색 (예: xylazine, β2, 항생제)" autocomplete="off"><div id="nav"></div><div id="out"></div>`;
+  $("q").oninput=()=>draw($("q").value);
+  draw("");
+}
+
+function draw(q){
+  q=q.trim().toLowerCase();
+  const out=$("out");
+  $("nav").innerHTML="";
+  if(!q){
+    $("nav").innerHTML=`<div class="navchips">${P.fam.map((f,i)=>`<button data-f="${i}">${f.icon} ${esc(f.name)}</button>`).join("")}</div>`;
+    dragScroll($("nav").firstElementChild);
+    const drugCount=us=>new Set(us.flatMap(u=>(unitCats[u]||[]).flatMap(c=>(groupsOf[c.i]||[]).flatMap(g=>g.d)))).size;
+    const catDrugs=c=>new Set((groupsOf[c.i]||[]).flatMap(g=>g.d)).size;
+    const groupsBlock=gs=>gs.some(g=>g.k)?clusterBlock(gs):gs.map(g=>group(g,false)).join("");
+    const catBody=c=>groupsBlock(groupsOf[c.i]||[]);
+    // 카테고리가 2개 이상이면 카테고리마다 접이식 소분류 탭으로 나눔
+    const catHtml=(c,u,multi)=>multi
+      ?`<details class="sub"><summary>${esc(c.n)}<small>${catDrugs(c)}종</small></summary><div class="subbody">${catBody(c)}</div></details>`
+      :`<div class="cat">${sameName(c.n,u)||sameName(c.n,us(u))?"":`<h3>${esc(c.n)}</h3>`}${catBody(c)}</div>`;
+    const unitHtml=u=>{const cs=unitCats[u]||[];return`<details class="unit"><summary title="${esc(u)}">${esc(us(u))}<small>${drugCount([u])}종</small></summary><div class="body">${cs.map(c=>catHtml(c,u,cs.length>=2)).join("")}${P.uref[u]?refBox(P.uref[u],"sub"):""}</div></details>`};
+    // 같은 묶음(예: 자율신경계, 중추신경계)의 단원은 작은 머리글 아래에 모아 보여줌
+    const fbody=f=>{
+      let html="",i=0;const list=f.units;
+      while(i<list.length){
+        const g=(UL[list[i]]||{}).g;let j=i+1;
+        if(g)while(j<list.length&&(UL[list[j]]||{}).g===g)j++;
+        const chunk=list.slice(i,j).map(unitHtml).join("");
+        html+=(g&&g!==f.name)?`<div class="ugrp"><div class="ugl">${esc(g)}</div>${chunk}</div>`:chunk;
+        i=j;
+      }
+      return html;
+    };
+    out.innerHTML=P.fam.map(f=>`<details class="fam"><summary><span class="ic">${f.icon}</span>${esc(f.name)}<small>${f.units.length}단원 · ${drugCount(f.units)}종</small></summary><div class="fbody">${fbody(f)}${f.ref&&f.ref.length?refBox(f.ref):""}</div></details>`).join("");
+    updateFab();
+    return;
+  }
+  hideFab();
+  const hit=Object.entries(D).filter(([id,d])=>[d.n,...(d.a||[])].some(x=>x.toLowerCase().includes(q))).slice(0,100);
+  const gs=P.groups.filter(g=>gl(g).toLowerCase().includes(q)||(g.ql||"").toLowerCase().includes(q)||catById[g.c].n.toLowerCase().includes(q)).slice(0,30);
+  out.innerHTML=`<div class="res">`+(hit.length?`<h2>약물 (${hit.length}${hit.length===100?"+":""})</h2>${chips(hit.map(h=>h[0]))}`:"")+(gs.length?`<h2>분류 (${gs.length}${gs.length===30?"+":""})</h2>${gs.map(g=>group(g,true)).join("")}`:"")+(hit.length||gs.length?"":`<div class="empty">검색 결과가 없어요</div>`)+`</div>`;
+}
+
+// 계열 칩 줄: 마우스로 끌어서 좌우 스크롤, 휠로도 좌우 스크롤 (터치는 기본 스와이프)
+function dragScroll(el){
+  let down=false,sx=0,sl=0,moved=false;
+  el.addEventListener("pointerdown",e=>{if(e.pointerType!=="mouse")return;down=true;moved=false;sx=e.clientX;sl=el.scrollLeft});
+  addEventListener("pointermove",e=>{if(!down)return;const dx=e.clientX-sx;if(Math.abs(dx)>4){moved=true;el.classList.add("drag")}el.scrollLeft=sl-dx});
+  addEventListener("pointerup",()=>{down=false;el.classList.remove("drag")});
+  el.addEventListener("click",e=>{if(moved){e.stopPropagation();e.preventDefault();moved=false}},true);
+  el.addEventListener("wheel",e=>{if(Math.abs(e.deltaY)>Math.abs(e.deltaX)&&el.scrollWidth>el.clientWidth){el.scrollLeft+=e.deltaY;e.preventDefault()}},{passive:false});
+}
+
+// ── 긴 내용을 읽다가 쉽게 닫기 ──
+// ① 열린 항목의 머리글은 화면 위에 붙어 있어 언제든 눌러서 닫을 수 있음
+// ② 오른쪽 아래 ‘닫기’ 버튼: 지금 읽고 있는 가장 안쪽 항목을 접고 그 머리글로 이동
+// ③ 계열·단원은 한 번에 하나만 열림(길이 줄이기)
+const fab=$("fab");
+let fabTarget=null;
+function summaryOf(d){return d.firstElementChild}
+function hideFab(){fabTarget=null;fab.hidden=true}
+function updateFab(){
+  let t=null;
+  document.querySelectorAll("details.fam[open], details.unit[open], details.sub[open], details.tab3[open]").forEach(d=>{
+    const r=d.getBoundingClientRect();
+    if(r.top<-4&&r.bottom>140)t=d;   // 문서 순서상 마지막 = 가장 안쪽
+  });
+  fabTarget=t;
+  if(!t){fab.hidden=true;return}
+  const txt=(t.matches(".refbox")?"📎 참고":(summaryOf(t).textContent||"").replace(/\d+(단원|종|개 주제).*$/,"").trim());
+  fab.textContent="▲ "+(txt.length>16?txt.slice(0,16)+"…":txt)+" 닫기";
+  fab.hidden=false;
+}
+let tick=false;
+addEventListener("scroll",()=>{if(tick)return;tick=true;requestAnimationFrame(()=>{tick=false;updateFab()})},{passive:true});
+function scrollToDetails(d){
+  // 위에 붙어 있는 상위 머리글(단원·소분류)의 높이만큼 비워서 맞춤
+  let off=8,a=d.parentElement.closest("details");
+  while(a){if(a.matches(".unit,.sub"))off+=summaryOf(a).offsetHeight;a=a.parentElement.closest("details")}
+  scrollTo({top:d.getBoundingClientRect().top+scrollY-off,behavior:"auto"});
+}
+fab.onclick=()=>{
+  const t=fabTarget;if(!t)return;
+  t.open=false;
+  requestAnimationFrame(()=>{scrollToDetails(t);updateFab()});
+};
+// 대분류(계열)만 한 번에 하나씩 열림. 나머지 탭은 여러 개를 동시에 열 수 있고, 눌러도 화면이 움직이지 않음
+$("app").addEventListener("toggle",e=>{
+  const d=e.target;
+  if(!d.matches||!d.open)return;
+  if(d.matches("details.unit:not(.refbox)"))d.style.setProperty("--uh",summaryOf(d).offsetHeight+"px");
+  if(d.matches("details.fam")){
+    // 다른 계열이 접히며 높이가 변해도, 누른 머리글이 화면에서 같은 위치에 있도록 보정
+    const sm=summaryOf(d),y0=sm.getBoundingClientRect().top;
+    document.querySelectorAll("details.fam[open]").forEach(o=>{if(o!==d)o.open=false});
+    const y1=sm.getBoundingClientRect().top;
+    if(y1!==y0)scrollBy(0,y1-y0);
+  }
+  updateFab();
+},true);
+$("app").addEventListener("click",e=>{
+  const b=e.target.closest(".navchips button");
+  if(!b)return;
+  const f=document.querySelectorAll("details.fam")[+b.dataset.f];
+  // 칩으로 이동할 때만 해당 계열 위치로 점프
+  document.querySelectorAll("details.fam[open]").forEach(o=>{if(o!==f)o.open=false});
+  f.open=true;scrollToDetails(f);
+});
+
+// ── 약물 정보 창: 한 줄 설명 · 교재 정보 · 분류별 설명을 한 화면에 ──
+// 카테고리 설명 중 이 약물의 분류와 관련된 항목만 골라서 보여줌 (분류 이름과 맞는 항목만 남김)
+function relDetail(c,g){
+  const d=c.d;if(!d)return null;
+  const gp=norm(g.g||""),gpre=norm((g.g||"").split(" - ")[0]),out={};
+  for(const[k,v]of Object.entries(d)){
+    if(["class_info","subgroups","notes","labels","classes"].includes(k)&&v&&typeof v==="object"&&!Array.isArray(v)){
+      const m=Object.entries(v).filter(([kk])=>{
+        const nk=norm(kk);
+        if(k==="classes")return gp.replace("class","")===nk;
+        return !!nk&&!!gp&&(nk.startsWith(gpre)||gpre.startsWith(nk)||gp.includes(nk)||nk.includes(gp));
+      });
+      if(m.length)out[k]=Object.fromEntries(m);
+    }else if(k==="class_I_note"){if(/^classi[abc]$/.test(gp))out[k]=v}
+    else out[k]=v;
+  }
+  return Object.keys(out).length?out:null;
+}
+// 항목 앞의 라벨(분류·기전·용도·주의 등)은 굵게
+function bullet(t){const m=t.match(/^([^:]{1,12}):\s*(.*)$/);return m?`<b class="lb">${esc(m[1])}</b> ${esc(m[2])}`:esc(t)}
+function sheet(id){
+  const d=D[id];if(!d)return;
+  const cl=clsOf[id]||[];
+  $("sh-top").innerHTML=`<div><h2>${esc(d.n)}</h2>${d.a?`<div class="alias">${esc(d.a.join(" · "))}</div>`:""}</div><button class="x" id="sx" aria-label="닫기">✕</button>`;
+  const info=(d.an?`<div class="tags">${d.an.map(a=>`<span class="tag">${esc(a)}</span>`).join("")}</div>`:"")+
+    (d.ac?`<p><b>작용</b> ${esc(d.ac)}</p>`:"")+(d.si?`<p><b>작용 부위</b> ${esc(d.si)}</p>`:"")+
+    (d.us?`<p><b>용도</b></p>${tree(d.us)}`:"")+(d.no?`${d.us?"<p><b>설명</b></p>":""}${tree(d.no)}`:"");
+  const clsHtml=cl.map(g=>{
+    const c=catById[g.c],peers=g.d.filter(x=>x!==id),rd=relDetail(c,g);
+    return`<div class="grp"><div class="path">${esc(ulab(c.u))} › ${esc(c.n)}</div>${g.g&&!sameName(g.g,c.n)?`<div class="gn">${esc(g.g)}</div>`:""}${g.i?`<div class="sub2">기전·특징</div>${tree(g.i)}`:""}${rd?`<div class="sub2">분류 설명</div>${tree(rd)}`:""}${peers.length?`<div class="sub2">같은 분류의 약물</div>${chips(peers)}`:""}</div>`;
+  }).join("");
+  $("sh-body").innerHTML=
+    (d.ds?`<ul class="lead">${d.ds.map(t=>`<li>${bullet(t)}</li>`).join("")}</ul>`:"")+
+    (info?`<h4>정보</h4>${info}`:"")+
+    `<h4>분류</h4>`+(clsHtml||"<span style='color:var(--sub)'>분류 정보 없음</span>");
+  $("sheetbg").classList.add("on");document.body.style.overflow="hidden";   // 팝업이 떠 있는 동안 뒤 화면 스크롤 잠금
+  $("sx").onclick=closeSheet;$("sh-body").scrollTop=0;
+}
+function closeSheet(){$("sheetbg").classList.remove("on");document.body.style.overflow=""}
+$("sheetbg").onclick=e=>{if(e.target===$("sheetbg"))closeSheet()};
+addEventListener("keydown",e=>{if(e.key==="Escape")closeSheet()});
+document.addEventListener("click",e=>{const b=e.target.closest(".chip");if(b)sheet(b.dataset.id)});
+home();
+</script>
+</body>
+</html>

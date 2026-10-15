@@ -4,7 +4,7 @@
 // 이 파일을 불러온 페이지의 모든 버튼·링크 클릭에는 자동으로 클릭음이 나며,
 // 소리를 끄고 싶은 요소에는 data-sfx="none" 을 붙입니다.
 (function () {
-  const KEY = "vs_settings3", DEF = { sfx: true, sfxVol: 0.6, bgm: true, bgmVol: 0.6 };
+  const KEY = "vs_settings3", DEF = { sfx: true, sfxVol: 0.6, bgm: false, bgmVol: 0.6 };
   // 배경음악 슬라이더 100% = 실제 음량 25% (최대 음량 상한). 효과음과의 균형용.
   const BGM_MAX = 0.25;
   window.VS = {
