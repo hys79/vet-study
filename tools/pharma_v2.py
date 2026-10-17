@@ -66,12 +66,16 @@ def build_v2(drugs, old_cats, old_groups):
             for x in s["d"]:
                 assert x in drugs, "DB에 없는 약물: " + x
                 seen.setdefault(x, []).append(c["id"] + ":" + s["g"])
-            g2 = {"c": c["id"], "g": s["g"], "d": list(s["d"])}
+            # 나열 순서: 기준(o)을 정한 섹션은 적은 순서 그대로, 나머지는 약물 이름 알파벳순
+            _byname = lambda ids: sorted(ids, key=lambda i: drugs[i]["n"].lower())
+            _d = list(s["d"]) if s.get("o") else _byname(s["d"])
+            g2 = {"c": c["id"], "g": s["g"], "d": _d}
+            if s.get("o"): g2["o"] = s["o"]
             if s["t"]: g2["t"] = s["t"]
             if s["a"]: g2["a"] = s["a"]
             if s["h"]: g2["h"] = s["h"]
             if s["sb"]: g2["sb"] = s["sb"]
-            if s["x"]: g2["x"] = list(s["x"])
+            if s["x"]: g2["x"] = _byname(s["x"])
             if infos[k]: g2["i"] = infos[k]
             groups.append(g2)
 
@@ -85,6 +89,26 @@ def build_v2(drugs, old_cats, old_groups):
         for x in g.get("x", []):
             assert x in seen, "참조 약물의 주 분류가 없습니다: " + x
 
+    # ── 원래(교재) 소속 대비 빠진 분류 점검 ──
+    prim = {}
+    for g in groups: prim.setdefault(g["c"], set()).update(g["d"])
+    allx = {}
+    for g in groups:
+        for x in g["d"] + g.get("x", []): allx.setdefault(g["c"], set()).add(x)
+    mapped = {}
+    for oc in old_cat:
+        do = {x for g in old_by_cat.get(oc, []) for x in g["d"]}
+        mapped[oc] = [nc["i"] for nc in cats if do & prim.get(nc["i"], set())]
+    missing_rows = []
+    for oc, ogs in old_by_cat.items():
+        for og in ogs:
+            for x in og["d"]:
+                if any(x in allx.get(nc, set()) for nc in mapped[oc]): continue
+                missing_rows.append((oc, og["g"], x))
+    import sys
+    if missing_rows:
+        sys.stderr.write("원래 소속이 빠진 약물 %d건" % len(missing_rows) + chr(10))
+        for r in missing_rows: sys.stderr.write("  %s | %s | %s" % r + chr(10))
     uses = []
     for uid, un, ug, uds in USES:
         for x in uds: assert x in drugs, (uid, x)

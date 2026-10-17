@@ -112,15 +112,15 @@ P.groups.forEach(g=>{
   [gl(g),c.n].forEach(l=>{LM[l]=LM[l]||new Set();g.d.forEach(x=>LM[l].add(x))});
 });
 Object.keys(unitDrugs).forEach(u=>unitDrugs[u]=[...unitDrugs[u]]);
-const xCat={},xLab={},catAllX={};
+const xCat={},xLab={},catAllX={},xG={};
 P.groups.forEach(g=>{
   (catAllX[g.c]=catAllX[g.c]||new Set());[...g.d,...(g.x||[])].forEach(id=>catAllX[g.c].add(id));
-  (g.x||[]).forEach(id=>{(xCat[id]=xCat[id]||new Set()).add(g.c);(xLab[id]=xLab[id]||new Set()).add(gl(g))});
+  (g.x||[]).forEach(id=>{(xG[id]=xG[id]||[]).push(g);(xCat[id]=xCat[id]||new Set()).add(g.c);(xLab[id]=xLab[id]||new Set()).add(gl(g))});
 });
 const FAMOF={};P.fam.forEach((f,i)=>f.units.forEach(u=>FAMOF[u]=i));
 const famDrugs={};ALL.forEach(id=>{const u=(clsOf[id]||[]).map(g=>unitOf(g))[0];if(u!==undefined){const i=FAMOF[u];(famDrugs[i]=famDrugs[i]||[]).push(id)}});
 const ownLabels=id=>{const s=new Set();(clsOf[id]||[]).forEach(g=>{s.add(gl(g));s.add(catById[g.c].n)});(xCat[id]||[]).forEach(c=>s.add(catById[c].n));(xLab[id]||[]).forEach(l=>s.add(l));return s};
-const clsHtml=id=>(clsOf[id]||[]).map(g=>{const c=catById[g.c];return`${esc(catPath(c))}${g.g?" › <b>"+esc(g.g)+"</b>":""}`}).join("<br>");
+const clsHtml=id=>(clsOf[id]||[]).map(g=>{const c=catById[g.c];return`${esc(catPath(c))}${g.g?" › <b>"+esc(g.g)+"</b>":""}`}).join("<br>")+(xG[id]||[]).map(g=>`<br>${esc(catPath(catById[g.c]))}${g.g?" › <b>"+esc(g.g)+"</b>":""}`).join("");
 
 // ── 약물 정보 색인 (분류·기전·용도·주의 … 항목) ──
 const LMAP={작용:"기전",수의학:"용도",증상:"중독",치료:"해독",교재:"특징"};
@@ -373,7 +373,7 @@ function genA(){
 // 6) 용도 → 약물 (기출 예: 아나필락시스에 사용할 수 있는 약물은?)
 // 오답은 '용도 태그가 있는 약물' 중에서, 정답 용도와 겹칠 수 있는 비슷한 용도(같은 묶음)를 가진 약물을 뺀 것만 사용
 const USE_CLUSTERS=[
-  ["sedation","tranq","anticonvulsant","muscle_relax","nm_block","general_anesthesia","analgesia","local_anesthesia","a2_reversal","joint","nsaid_use","opioid_antidote","antitussive_opioid","benzo_antidote"],
+  ["sedation","tranq","anticonvulsant","muscle_relax","nm_block","general_anesthesia","analgesia","local_anesthesia","a2_reversal","joint","nsaid_use","opioid_antidote","antitussive_opioid","benzo_antidote","immobilization"],
   ["pressor","bronchodilator","decongestant","tocolytic","incontinence"],
   ["anticoag","heparin_antidote","antiplatelet_thrombolytic","hemostatic"],
   ["heart_failure","antiarrhythmic","antihypertensive","angina","pheo","diuresis"],
@@ -385,7 +385,7 @@ const USE_CLUSTERS=[
   ["parturition","estrus_control","lactation","repro_luteolysis","pregnancy_termination","diabetes_insipidus"],
   ["nematode","cestode_trematode","heartworm","protozoa","ectoparasite","anthelmintic_n"],
   ["chemo","immunosuppression","antiinflammatory_steroid","pruritus"],
-  ["antifungal_use","antiviral_use","anaerobe","tb","gi_topical_antibiotic","mrsa_resistant","brd","skin_uti","surgical_prophylaxis"]
+  ["antifungal_use","antiviral_use","anaerobe","tb","gi_topical_antibiotic","mrsa_resistant","brd","skin_uti","surgical_prophylaxis","pseudomonas"]
 ];
 function genU(){
   const us=(P.uses||[]).filter(u=>u.d.some(drugInScope));if(!us.length)return null;

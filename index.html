@@ -143,7 +143,7 @@ function mdToHtml(src){
   return out.join("\n");
 }
 
-async function view(id,i){
+async function view(id,i,extra){
   const t=T.find(x=>x.id===id),it=t&&t.items[i];
   if(!it){location.hash="";return}
   viewer.classList.add("on");$("vt").textContent=it.title;
@@ -156,7 +156,7 @@ async function view(id,i){
     setFrame();md.hidden=true;zv.hidden=false;zv.innerHTML="";
     const im=new Image();im.alt=it.title;im.src=f;zv.appendChild(im);ZoomView.attach(zv,im);
   }else{
-    md.hidden=true;setFrame(f);
+    md.hidden=true;setFrame(f+(extra?"#"+extra:""));
   }
   if(!/^(png|jpe?g|gif|webp|svg|bmp)$/.test(ext))zv.hidden=true;
   $("vb").onclick=()=>goBack(single(id)?"":"#/t/"+id);
@@ -167,7 +167,7 @@ function route(){
   if(h[1]!=="v"){viewer.classList.remove("on");setFrame();}
   if(h[1]==="t"&&single(decodeURIComponent(h[2])))location.replace(open(decodeURIComponent(h[2])));
   else if(h[1]==="t")topic(decodeURIComponent(h[2]));
-  else if(h[1]==="v")view(decodeURIComponent(h[2]),+h[3]);
+  else if(h[1]==="v")view(decodeURIComponent(h[2]),+h[3],h[4]);
   else home();
   window.scrollTo(0,0);
 }

@@ -9,8 +9,9 @@ cat: id, n, unit, b(분류 기준), cols(수용체 표 열), old(원문 설명�
 """
 
 
-def S(g, d, t=None, a=None, info=(), sb=None, x=(), h=None):
-    return {"g": g, "d": list(d), "t": t, "a": a, "info": list(info), "sb": sb, "x": list(x), "h": h}
+def S(g, d, t=None, a=None, info=(), sb=None, x=(), h=None, o=None):
+    """o: 약물을 직접 정한 순서로 나열할 때 그 기준(예: '작용 시간 짧은 → 긴'). 없으면 약물 이름 알파벳순."""
+    return {"g": g, "d": list(d), "t": t, "a": a, "info": list(info), "sb": sb, "x": list(x), "h": h, "o": o}
 
 
 OPIOID_COLS = ["효현제", "부분 · 혼합 효현-길항제", "길항제"]
@@ -76,7 +77,7 @@ CATS_A = [
     {
         "id": "cns_depressant", "n": "중추신경 억제제", "unit": "중추신경계", "fam": "cns", "b": "화학 구조",
         "sections": [
-            S("Barbiturate계", ["thiopental", "phenobarbital", "pentobarbital", "primidone"]),
+            S("Barbiturate계", ["thiopental", "pentobarbital", "phenobarbital", "primidone"], o="작용 시간 짧은 → 긴"),
             S("Benzodiazepine계", ["diazepam", "midazolam", "clonazepam", "lorazepam", "zolazepam"]),
             S("기타 진정 · 최면제", ["chloral_hydrate", "glutethimide"]),
             S("Phenothiazine계", ["chlorpromazine", "acepromazine", "promazine", "prochlorperazine"]),
@@ -91,7 +92,7 @@ CATS_A = [
     {
         "id": "analgesic", "n": "마약성 진통제", "unit": "중추신경계", "fam": "cns", "b": "수용체(오피오이드)", "cols": OPIOID_COLS,
         "sections": [
-            S("오피오이드 효현제", ["morphine", "codeine", "diamorphine", "methadone", "thiambutene", "pethidine", "etorphine", "fentanyl", "levorphanol", "alphaprodine", "anileridine", "propoxyphene", "hydrocodone", "hydromorphone", "tramadol"],
+            S("오피오이드 효현제", ["morphine", "codeine", "diamorphine", "methadone", "thiambutene", "pethidine", "etorphine", "fentanyl", "levorphanol", "alphaprodine", "anileridine", "propoxyphene", "hydrocodone", "hydromorphone", "tramadol", "oxymorphone", "carfentanil"],
               "오피오이드 수용체", "효현제"),
             S("오피오이드 부분 · 혼합 효현제", ["butorphanol", "buprenorphine", "nalbuphine"], "오피오이드 수용체", "부분 · 혼합 효현-길항제"),
             S("오피오이드 길항제", ["naloxone"], "오피오이드 수용체", "길항제"),
@@ -105,8 +106,8 @@ CATS_A = [
             S("해리성 마취제(주사)", ["ketamine", "tiletamine"]),
             S("Imidazole계(주사)", ["metomidate", "etomidate", "r8110"]),
             S("Alphaxalone(주사)", ["alphaxalone"]),
-            S("흡입 마취제", ["halothane", "nitrous_oxide", "methoxyflurane", "isoflurane", "cyclopropane", "trichloroethylene", "desflurane", "sevoflurane", "tricaine_methanesulfonate"]),
-            S("국소마취제 - amide형", ["lidocaine", "bupivacaine", "ropivacaine", "mepivacaine", "prilocaine", "etidocaine", "cinchocaine"]),
+            S("흡입 마취제", ["desflurane", "cyclopropane", "nitrous_oxide", "sevoflurane", "isoflurane", "halothane", "trichloroethylene", "methoxyflurane", "tricaine_methanesulfonate"], o="혈액/가스 분배계수 낮은(유도·회복 빠른) → 높은 순"),
+            S("국소마취제 - amide형", ["prilocaine", "lidocaine", "mepivacaine", "ropivacaine", "bupivacaine", "etidocaine", "cinchocaine"], o="작용 시간 짧은 → 긴"),
             S("국소마취제 - ester형", ["tetracaine", "procaine", "benzocaine", "proparacaine", "butacaine", "butyl_aminobenzoate"]),
         ],
     },
@@ -136,6 +137,7 @@ CATS_A = [
             S("H1 길항제", ["diphenhydramine", "mepyramine", "promethazine", "tripelennamine", "chlorpheniramine", "hydroxyzine", "dimenhydrinate", "astemizole", "terfenadine"], "H1", "길항제",
               sb="1세대: 진정·항무스카린 작용(멀미·구토에도 사용) / 2세대(astemizole, terfenadine): 진정 적음, QT 연장"),
             S("H2 길항제", ["cimetidine", "ranitidine", "famotidine", "burimamide", "metiamide", "nizatidine"], "H2", "길항제", sb="위산 분비 억제. cimetidine은 CYP450 억제"),
+            S("히스타민(내인성 아민)", ["histamine"], "H1 · H2", "효현제"),
             S("5-HT1 효현제", ["buspirone"], "5-HT1", "효현제"),
             S("5-HT2 길항제", ["cyproheptadine", "ketanserin"], "5-HT2", "길항제"),
             S("5-HT3 길항제", ["ondansetron", "dolasetron"], "5-HT3", "길항제"),
@@ -159,7 +161,7 @@ CATS_A = [
             S("내인성 글루코코르티코이드", ["cortisol", "corticosterone"]),
             S("내인성 무기질코르티코이드", ["deoxycorticosterone", "aldosterone"]),
             S("무기질코르티코이드 대치요법", ["fludrocortisone"], sb="Addison병 치료"),
-            S("합성 글루코코르티코이드", ["cortisone", "hydrocortisone", "prednisone", "prednisolone", "methylprednisolone", "dexamethasone", "triamcinolone", "flumethasone", "betamethasone"]),
+            S("합성 글루코코르티코이드", ["cortisone", "hydrocortisone", "prednisone", "prednisolone", "methylprednisolone", "triamcinolone", "flumethasone", "dexamethasone", "betamethasone"], o="항염증 효력 약한 → 강한"),
             S("합성 부신피질 호르몬 길항제", ["ddt", "amphenone_b", "metyrapone"], x=["spironolactone"]),
             S("부신 스테로이드 합성 억제제", ["mitotane", "trilostane"], x=["ketoconazole", "selegiline"], sb="Cushing병 치료"),
         ],

@@ -46,6 +46,10 @@ from drug_extra import EXTRA   # DB에 없는 약물 직접 추가
 for _id, _v in EXTRA.items():
     assert _id not in drugs, _id
     drugs[_id] = {"n": _v["n"], **({"a": _v["a"]} if _v.get("a") else {})}
+from drug_extra import ALIAS   # 이미 있는 약물의 다른 이름(예: albuterol = salbutamol)
+for _id, _al in ALIAS.items():
+    assert _id in drugs, _id
+    drugs[_id]["a"] = drugs[_id].get("a", []) + [x for x in _al if x not in drugs[_id].get("a", [])]
 
 # 약물별 정보(AI 작성, 개조식 항목 목록)
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))

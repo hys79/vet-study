@@ -15,6 +15,10 @@
 @keyframes shpop{from{transform:translateY(10px) scale(.97);opacity:0}to{transform:none;opacity:1}}
 #sh-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:14px 18px 10px;border-bottom:1px solid var(--line)}
 #sh-body{overflow:auto;padding:0 18px 28px}
+#sh-top>div{flex:1;min-width:0}
+#sh-top .bk{flex:none;background:none;color:var(--sub);font:inherit;font-size:14px;line-height:1;cursor:pointer;border:1.5px solid var(--line);border-radius:50%;width:26px;height:26px;padding:0}
+#sh-top .bk:hover,#sh-top .bk:focus-visible{border-color:var(--acc);color:var(--acc);outline:none}
+#sheet .xr{border-left-style:dashed}
 #sh-top h2{margin:0;font-size:22px;letter-spacing:-.01em;word-break:break-word}
 #sh-top .x{background:none;color:inherit;font:inherit;cursor:pointer;border:1.5px solid var(--line);border-radius:50%;width:36px;height:36px;flex:none;font-size:16px}
 #sh-top .nm{display:flex;align-items:center;gap:6px;min-width:0}
@@ -42,6 +46,9 @@
 #sheet .grp{margin:8px 0 10px;padding:8px 10px;border-left:3px solid var(--line)}
 #sheet .path{color:var(--sub);font-size:13px;margin-bottom:3px}
 #sheet .gn{font-weight:700;font-size:15px;margin-bottom:5px}
+#sheet .gn{display:flex;align-items:center;gap:8px}
+#sheet button.jump{flex:none;display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;padding:0;background:none;border:1.5px solid var(--line);border-radius:50%;font:inherit;font-size:13px;line-height:1;color:var(--sub);cursor:pointer}
+#sheet button.jump:hover,#sheet button.jump:focus-visible{border-color:var(--acc);color:var(--acc);background:var(--accbg);outline:none}
 #sheet .chips{display:flex;flex-wrap:wrap;gap:6px}
 #sheet .chip{background:var(--accbg);color:var(--ink);font:inherit;font-size:14px;cursor:pointer;border:1px solid transparent;border-radius:99px;padding:3px 11px}
 #sheet .chip:hover,#sheet .chip:focus-visible{border-color:var(--acc);outline:none}
@@ -58,8 +65,10 @@
   const $ = id => document.getElementById(id);
 
   // ── 색인 ──
+  const gIdx = new Map(); P.groups.forEach((g, i) => gIdx.set(g, i));
   const catById = {}; P.cats.forEach(c => catById[c.i] = c);
   const clsOf = {}; P.groups.forEach(g => g.d.forEach(id => (clsOf[id] = clsOf[id] || []).push(g)));
+  const xOf = {}; P.groups.forEach(g => (g.x || []).forEach(id => (xOf[id] = xOf[id] || []).push(g)));
   const useById = {}; (P.uses || []).forEach(u => useById[u.i] = u);
   const UL = P.ulab || {};
   const us = u => (UL[u] && UL[u].s) || u;
@@ -108,20 +117,20 @@
   const bullet = t => { const m = t.match(/^([^:]{1,12}):\s*(.*)$/); return m ? `<b class="lb">${esc(m[1])}</b> ${esc(m[2])}` : esc(t); };
 
   function show(top, body) {
-    $("sh-top").innerHTML = top + '<button class="x" id="sx" aria-label="닫기">✕</button>';
+    $("sh-top").innerHTML = (cur > 0 ? '<button class="bk" id="shbk" aria-label="뒤로" title="뒤로">←</button>' : "") + top + '<button class="x" id="sx" aria-label="닫기">✕</button>';
     $("sh-body").innerHTML = body;
     bg.classList.add("on"); document.body.style.overflow = "hidden";   // 팝업이 떠 있는 동안 뒤 화면 스크롤 잠금
-    $("sx").onclick = close; $("sh-body").scrollTop = 0;
+    $("sx").onclick = close; if ($("shbk")) $("shbk").onclick = back; $("sh-body").scrollTop = 0;
   }
-  function open(id) {
+  function drawDrug(id) {
     const d = D[id]; if (!d) return;
-    const cl = clsOf[id] || [];
+    const cl = [...(clsOf[id] || []), ...(xOf[id] || [])];   // 주 분류 + 참조 분류를 구분 없이 나열
     const info = (d.an ? `<div class="tags">${d.an.map(a => `<span class="tag">${esc(a)}</span>`).join("")}</div>` : "") +
       (d.ac ? `<p><b>작용</b> ${esc(d.ac)}</p>` : "") + (d.si ? `<p><b>작용 부위</b> ${esc(d.si)}</p>` : "") +
       (d.us ? `<p><b>용도</b></p>${tree(d.us)}` : "") + (d.no ? `${d.us ? "<p><b>설명</b></p>" : ""}${tree(d.no)}` : "");
     const clsHtml = cl.map(g => {
-      const c = catById[g.c], peers = g.d.filter(x => x !== id), rd = relDetail(c, g);
-      return `<div class="grp"><div class="path">${esc(ulab(c.u))} › ${esc(c.n)}</div>${g.g && !sameName(g.g, c.n) ? `<div class="gn">${esc(g.g)}</div>` : ""}${g.i ? `<div class="sub2">기전·특징</div>${tree(g.i)}` : ""}${rd ? `<div class="sub2">분류 설명</div>${tree(rd)}` : ""}${peers.length ? `<div class="sub2">같은 분류의 약물</div>${chips(peers)}` : ""}</div>`;
+      const c = catById[g.c], peers = [...g.d, ...(g.x || [])].filter(x => x !== id), rd = relDetail(c, g);
+      return `<div class="grp"><div class="path">${esc(ulab(c.u))} › ${esc(c.n)}</div><div class="gn"><span>${esc(g.g && !sameName(g.g, c.n) ? g.g : c.n)}</span><button class="jump" data-jump="${gIdx.get(g)}" aria-label="약물 분류 정리에서 자세히 보기" title="약물 분류 정리에서 자세히 보기">↗</button></div>${g.i ? `<div class="sub2">기전·특징</div>${tree(g.i)}` : ""}${rd ? `<div class="sub2">분류 설명</div>${tree(rd)}` : ""}${peers.length ? `<div class="sub2">같은 분류의 약물</div>${chips(peers)}` : ""}</div>`;
     }).join("");
     show(`<div style="min-width:0"><div class="nm"><h2>${esc(d.n)}</h2><button class="star${isStar(id) ? " on" : ""}" data-star="${esc(id)}" aria-label="북마크" aria-pressed="${isStar(id)}" title="북마크">${isStar(id) ? "★" : "☆"}</button></div>${d.a ? `<div class="alias">${esc(d.a.join(" · "))}</div>` : ""}</div>`,
       (d.ds ? `<ul class="lead">${d.ds.map(t => `<li>${bullet(t)}</li>`).join("")}</ul>` : "") +
@@ -130,7 +139,7 @@
       `<h4>분류</h4>` + (clsHtml || "<span style='color:var(--sub)'>분류 정보 없음</span>"));
   }
   // 용도: 그 용도의 약물을 주 분류(약물군 › 세부 분류)별로 보여줌
-  function openUse(uid) {
+  function drawUse(uid) {
     const u = useById[uid]; if (!u) return;
     const by = new Map();
     u.d.forEach(id => { const g = (clsOf[id] || [])[0], k = g ? `${catById[g.c].n} › ${g.g || catById[g.c].n}` : "분류 없음"; if (!by.has(k)) by.set(k, []); by.get(k).push(id); });
@@ -138,19 +147,54 @@
       [...by].map(([k, ids]) => `<h5>${esc(k)}</h5>${chips(ids)}`).join(""));
   }
   // 북마크한 약물 모아 보기(약물군 › 세부 분류별)
-  function openStars() {
+  function drawStars() {
     const by = new Map();
     stars.forEach(id => { const g = (clsOf[id] || [])[0], k = g ? `${catById[g.c].n} › ${g.g || catById[g.c].n}` : "분류 없음"; if (!by.has(k)) by.set(k, []); by.get(k).push(id); });
     show(`<div><h2>★ 북마크</h2><div class="alias">${stars.length}종 · 약물 정보창의 ☆를 눌러 추가·해제</div></div>`,
       stars.length ? [...by].map(([k, ids]) => `<h5>${esc(k)}</h5><div class="chips">${ids.map(id => `<span class="sr"><button class="chip" data-id="${esc(id)}">${esc(D[id].n)}</button><button class="star on" data-star="${esc(id)}" aria-label="북마크 해제" aria-pressed="true" title="북마크 해제">★</button></span>`).join("")}</div>`).join("") + '<button class="stdel" id="stdel">모두 해제</button>'
         : '<div class="none">아직 북마크한 약물이 없어요. 약물 정보창 이름 옆의 ☆를 눌러 추가해 보세요.</div>');
-    const del = $("stdel"); if (del) del.onclick = () => { if (confirm("북마크를 모두 해제할까요?")) { stars = []; saveStars(); openStars(); } };
+    const del = $("stdel"); if (del) del.onclick = () => { if (confirm("북마크를 모두 해제할까요?")) { stars = []; saveStars(); drawStars(); } };
   }
-  function close() { bg.classList.remove("on"); document.body.style.overflow = ""; }
+  // 약물 분류 정리의 해당 세부 분류로 이동: 정리 페이지에서는 그 자리에서, 퀴즈·어미 정리에서는 새 탭(퀴즈 진행을 유지)
+  function jump(gi) {
+    if (typeof window.PharmaJump === "function") { close(); setTimeout(() => window.PharmaJump(gi), 150); return; }
+    let idx = 0;
+    try { const t = parent.TOPICS.find(x => x.id === "pharmacology"); const k = t.items.findIndex(i => /pharmacology\/notes\.html$/.test(i.file)); if (k >= 0) idx = k; } catch (e) {}
+    window.open(new URL("../../index.html", location.href).href + "#/v/pharmacology/" + idx + "/g=" + gi, "_blank");
+  }
+  // ── 이동 기록 ──
+  let stack = [], cur = -1, expect = 0, canHist = true;
+  function draw(v) { if (v.t === "d") drawDrug(v.id); else if (v.t === "u") drawUse(v.id); else drawStars(); }
+  function nav(v) {
+    if (v.t === "d" && !D[v.id]) return;
+    if (v.t === "u" && !useById[v.id]) return;
+    if (!stack.length) { stack = [v]; cur = 0; } else { stack = stack.slice(0, cur + 1); stack.push(v); cur++; }
+    if (canHist) { try { history.pushState({ sh: cur + 1 }, ""); } catch (e) { canHist = false; } }
+    draw(v);
+  }
+  const open = id => nav({ t: "d", id }), openUse = id => nav({ t: "u", id }), openStars = () => nav({ t: "s" });
+  function back() { if (cur <= 0) return; if (canHist) history.back(); else { cur--; draw(stack[cur]); } }
+  function hide() { bg.classList.remove("on"); document.body.style.overflow = ""; }
+  function close() {
+    if (!stack.length) { hide(); return; }
+    const n = cur + 1; hide(); stack = []; cur = -1;
+    if (canHist && n > 0) { expect++; setTimeout(() => { if (expect > 0) expect = 0; }, 800); history.go(-n); }
+  }
+  // 브라우저 뒤로가기(마우스 옆 버튼 포함): 정보창이 열려 있으면 이전 화면으로, 처음 화면이면 정보창만 닫음(페이지는 유지)
+  addEventListener("popstate", e => {
+    if (expect > 0) { expect--; e.stopImmediatePropagation(); return; }
+    if (!stack.length) return;
+    e.stopImmediatePropagation();
+    const d = e.state && e.state.sh;
+    if (!d) { hide(); stack = []; cur = -1; return; }
+    if (d <= stack.length) { cur = d - 1; draw(stack[cur]); }
+  });
 
   bg.onclick = e => { if (e.target === bg) close(); };
   addEventListener("keydown", e => { if (e.key === "Escape") close(); });
   document.addEventListener("click", e => {
+    const j = e.target.closest("[data-jump]");
+    if (j) { jump(+j.dataset.jump); return; }
     const t = e.target.closest("[data-star]");
     if (t) { toggleStar(t.dataset.star); const on = isStar(t.dataset.star); t.classList.toggle("on", on); t.textContent = on ? "★" : "☆"; t.setAttribute("aria-pressed", on); const row = t.closest(".sr"); if (row) row.classList.toggle("off", !on); const sub = document.querySelector("#sh-top .alias"); if (sub && row) sub.textContent = `${stars.length}종 · 약물 정보창의 ☆를 눌러 추가·해제`; return; }
     const u = e.target.closest("[data-use]"); if (u) { openUse(u.dataset.use); return; }

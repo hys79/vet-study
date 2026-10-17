@@ -17,3 +17,6 @@ EXTRA = {
 
 from drug_extra_vet import EXTRA_VET   # 수의 임상 추가 약물
 EXTRA.update(EXTRA_VET)
+
+from drug_extra_more import EXTRA_MORE, ALIAS   # 추가 약물 · 별칭
+EXTRA.update(EXTRA_MORE)

@@ -107,6 +107,8 @@ li{margin:2px 0}
   .rc{border-left:0;border-top:1px dashed var(--line)}
   .cl{display:block}
 }
+@keyframes flash{0%,60%{background:color-mix(in srgb,var(--acc) 22%,transparent)}100%{background:transparent}}
+.flash{animation:flash 2.2s ease-out;border-radius:8px}
 .chip.use{background:transparent;border:1px solid var(--acc);color:var(--acc)}
 .sh{margin:14px 0 2px;font-size:12.5px;font-weight:800;color:var(--sub);letter-spacing:.02em;border-bottom:1px solid var(--line);padding-bottom:2px}
 .subbody h5{margin:10px 0 2px;font-size:14.5px;color:var(--acc)}
@@ -193,24 +195,44 @@ function home(){
   const upd=()=>{$("stn").textContent=DrugSheet.stars().length};upd();document.addEventListener("starschange",upd);
   $("stbtn").onclick=()=>DrugSheet.openStars();
   draw("");
+  const hm=location.hash.match(/g=(\d+)/);if(hm)setTimeout(()=>jumpTo(+hm[1]),80);   // 퀴즈·어미 정리의 정보창에서 넘어온 경우
 }
 
 const catN=c=>new Set((groupsOf[c.i]||[]).flatMap(g=>g.d)).size;
 const xch=g=>g.x&&g.x.length?chips(g.x):"";
 const more=g=>g.i?`<details class="more"><summary>기전·특징 보기</summary>${tree(g.i)}</details>`:"";
 // v2 약물군: 수용체 표(행=수용체, 열=효현제/길항제) + 표에 없는 세부 분류는 소제목 + 약물 칩
-function secBlock(g){return`<div class="cg"><h5>${esc(gl(g))}</h5>${g.sb?`<div class="sb">${esc(g.sb)}</div>`:""}${g.d.length?chips(g.d):""}${xch(g)}${more(g)}</div>`}
+function secBlock(g){return`<div class="cg" data-g="${P.groups.indexOf(g)}"><h5>${esc(gl(g))}</h5>${g.sb?`<div class="sb">${esc(g.sb)}</div>`:""}${g.o?`<div class="sb">${esc(g.o)}</div>`:""}${g.d.length?chips(g.d):""}${xch(g)}${more(g)}</div>`}
 function secList(gs){let prev=null,html="";gs.forEach(g=>{if(g.h&&g.h!==prev)html+=`<div class="sh">${esc(g.h)}</div>`;prev=g.h||null;html+=secBlock(g)});return html}
 function tableBlock(c,gs){
   const rows=[];gs.forEach(g=>{if(!rows.includes(g.t))rows.push(g.t)});
-  const cell=(t,a)=>{const g=gs.find(x=>x.t===t&&x.a===a);return g?`${chips(g.d)}${xch(g)}${more(g)}`:`<span class="none">—</span>`};
+  const cell=(t,a)=>{const g=gs.find(x=>x.t===t&&x.a===a);return g?`<span data-g="${P.groups.indexOf(g)}">${chips(g.d)}${xch(g)}${more(g)}</span>`:`<span class="none">—</span>`};
   return`<div class="rt" style="--n:${c.cols.length}"><div class="rhd"><span></span>${c.cols.map(x=>`<span>${esc(x)}</span>`).join("")}</div>${rows.map(t=>`<div class="rrow"><div class="rl">${esc(t)}</div>${c.cols.map(a=>`<div class="rc"><span class="cl">${esc(a)}</span>${cell(t,a)}</div>`).join("")}</div>`).join("")}</div>`;
 }
 function catV2(c){
   const gs=groupsOf[c.i]||[],tb=c.cols?gs.filter(g=>g.t):[],ot=c.cols?gs.filter(g=>!g.t):gs;
-  return`<details class="unit"><summary>${esc(c.n)}<small>${catN(c)}종</small></summary><div class="body"><div class="basis">분류 기준: ${esc(c.b)}</div>${tb.length?tableBlock(c,tb):""}${secList(ot)}${c.ref?refBox(c.ref):""}</div></details>`;
+  return`<details class="unit" data-cat="${esc(c.i)}"><summary>${esc(c.n)}<small>${catN(c)}종</small></summary><div class="body"><div class="basis">분류 기준: ${esc(c.b)}</div>${tb.length?tableBlock(c,tb):""}${secList(ot)}${c.ref?refBox(c.ref):""}</div></details>`;
 }
 const fbodyV2=f=>f.units.map(u=>`<div class="ugrp">${f.units.length>1||us(u)!==f.name?`<div class="ugl">${esc(us(u))}</div>`:""}${(unitCats[u]||[]).map(catV2).join("")}</div>`).join("");
+// 정보창의 분류 이름을 눌렀을 때: 계열 · 약물군을 펼치고 해당 세부 분류로 스크롤해 잠시 강조
+function jumpTo(gi){
+  const g=P.groups[gi];if(!g)return;
+  const c=catById[g.c],fi=P.fam.findIndex(f=>f.units.includes(c.u));
+  if($("q").value){$("q").value="";draw("")}
+  const fam=document.querySelectorAll("details.fam")[fi];if(!fam)return;
+  fam.open=true;
+  setTimeout(()=>{
+    const cd=fam.querySelector('details.unit[data-cat="'+c.i+'"]');if(!cd)return;
+    cd.open=true;
+    setTimeout(()=>{
+      const el=cd.querySelector('[data-g="'+gi+'"]')||cd;
+      const hdr=cd.querySelector("summary").offsetHeight+16;
+      scrollTo({top:el.getBoundingClientRect().top+scrollY-hdr-8,behavior:"smooth"});
+      const tgt=el.matches("span")?el.closest(".rc")||el:el;tgt.classList.add("flash");setTimeout(()=>tgt.classList.remove("flash"),2200);
+    },120);
+  },120);
+}
+window.PharmaJump=jumpTo;
 function draw(q){
   q=q.trim().toLowerCase();
   const out=$("out");

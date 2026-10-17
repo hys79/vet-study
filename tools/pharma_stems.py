@@ -80,6 +80,7 @@ STEMS = [
     ST("-triptyline / -ipramine", r"(triptyline|ipramine)$", "신경·마취", "삼환계 항우울제(TCA)", "NE·5-HT 재흡수 차단. clomipramine: 개 분리불안"),
     ST("-xetine / -traline", r"(oxetine|xetine|traline|fluvoxamine)$", "신경·마취", "SSRI", "SERT 선택 차단, 세로토닌 증후군 주의",
        [("methoxamine", "α1 효현제"), ("butoxamine", "β2 길항제")]),
+    ST("-fentanil", r"fentanil$|fentanyl$", "신경·마취", "Fentanyl계 opioid", "μ 효현제 — fentanyl(약 100배), carfentanil(약 10,000배, 대동물 불동화·사람 노출 치명적)"),
     ST("-orphine / -orphan", r"(orphine|orphan|orphanol|orphone)$", "신경·마취", "Opioid(morphinan계)", "μ 수용체 → 진통·호흡 억제. 길항제 naloxone",
        [("apomorphine", "도파민 효현 — 진통 없이 구토 유도"), ("dextromethorphan", "진통 효과 없는 진해제")]),
     # ── 소화기 · 호흡기 ──
