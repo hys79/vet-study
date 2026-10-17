@@ -27,11 +27,25 @@ python -m http.server 8000
 
 ## 약리학 데이터 만들기 (`tools/`)
 - `python tools/build_pharma.py` → `content/pharmacology/data.js` 생성 (원본 DB: `Desktop/pharmacology_data`)
-- 약물 정보(AI 작성, 개조식): `tools/drug_info_1~3.py` + 교재 보강 `tools/drug_info_patch.py`, 교재 원문 문장은 `tools/gaejosik.py`로 개조식 변환, 단원·계열 참고(AI 작성): `tools/ref_unit_a.py`, `ref_unit_b.py`, `ref_family.py`
+- 약물 정보(AI 작성, 개조식): `tools/drug_info_1~3.py` + 교재 보강 `tools/drug_info_patch.py`, 교재 원문 문장은 `tools/gaejosik.py`로 개조식 변환, ‘핵심 정리’(AI 작성): `tools/ref_v2.py`
 - 단원 이름 간소화·계열 구성·분류 묶음: `tools/build_pharma.py`의 `UNIT_LABELS`, `FAMILIES`, `GROUP_CLUSTERS`
 
 ## 약리학 퀴즈 유형 (content/pharmacology/quiz.html)
 - 정보 → 약물 / 약물 → 정보(옳은·옳지 않은 설명) / 분류 → 약물 / 약물 → 분류 / 전체 랜덤 (부작용·금기·해독은 정보 유형에 포함)
 - 약물 정보(분류·기전·용도·주의 …)와 교재 문장에서 문제를 자동 생성하며, 보기가 정답과 같은 단어를 공유하면 오답에서 제외해 정답이 둘이 되는 문제를 줄임
 - 난이도(쉬움/어려움): 분류 → 약물 · 약물 → 분류 유형에 적용. 쉬움은 큰 분류(카테고리) 단위(같은 계열·단원 오답이 섞임), 어려움은 세부 분류 단위(같은 카테고리의 형제 분류가 오답). 선지 아래에 단원 › 카테고리 경로를 표시
+- 용도 → 약물 유형(신경계): 용도 태그는 `tools/pharma_v2.py`의 `USES_V2`
 - 출제 범위는 `tools/build_pharma.py`의 `SCOPE_CHUNKS`(큰 덩어리)로 선택
+
+## 약리학 분류 체계 (전 계열 공통 틀)
+- 접는 단계는 계열 > 약물군(탭) 2단. 약물군 안의 세부 분류는 소제목(h) + 약물 칩. 단원은 접지 않는 작은 머리글
+- 약물군마다 분류 기준 1개(`b`). 수용체형은 수용체 × 효현제/길항제 표
+- 약물의 주 분류(d)는 한 곳. 다른 약물군에서 보여 줄 약물은 참조(x, 점선 칩), 여러 용도는 용도 태그로 연결(약물 정보창 태그 · 검색 · 퀴즈)
+- ‘핵심 정리’ 상자는 약물군마다 하나(계열 단위가 필요한 경우만 계열에 하나)
+- 정의 파일: `tools/pharma_cats_a.py` · `pharma_cats_b.py`(약물군·세부 분류), `pharma_uses.py`(용도), `ref_v2.py`(핵심 정리), 빌드 로직 `pharma_v2.py`
+- 반영: `python tools/build_pharma.py` (모든 약물이 한 곳에만 주 분류로 들어갔는지 자동 검사)
+
+## 기타 정리 페이지
+- 약물 이름 어미 정리(`content/pharmacology/stems.html`): 어미·예외는 `tools/pharma_stems.py`(예시 약물은 정규식으로 자동 수집)
+- DB에 없는 약물 추가: `tools/drug_extra.py`(약물 정보) + `pharma_cats_a/b.py`(분류) + `pharma_uses.py`(용도)
+- 약물 정보창(팝업)은 `content/pharmacology/sheet.js`를 정리·어미 페이지가 함께 사용(칩에 `class="chip" data-id="약물id"`)

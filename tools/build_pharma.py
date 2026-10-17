@@ -41,12 +41,19 @@ for d in drugs_src:
     if d.get("site"): rec["si"] = d["site"]
     drugs[d["id"]] = rec
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from drug_extra import EXTRA   # DB에 없는 약물 직접 추가
+for _id, _v in EXTRA.items():
+    assert _id not in drugs, _id
+    drugs[_id] = {"n": _v["n"], **({"a": _v["a"]} if _v.get("a") else {})}
+
 # 약물별 정보(AI 작성, 개조식 항목 목록)
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from drug_info_1 import INFO_1
 from drug_info_2 import INFO_2
 from drug_info_3 import INFO_3
 DRUG_INFO = {**INFO_1, **INFO_2, **INFO_3}
+DRUG_INFO.update({_i: _v["info"] for _i, _v in EXTRA.items()})
 _missing = [i for i in drugs if i not in DRUG_INFO]
 assert not _missing, "정보가 없는 약물: " + str(_missing[:10])
 assert not [i for i in DRUG_INFO if i not in drugs], "DB에 없는 약물 id가 있습니다"
@@ -346,6 +353,12 @@ for _cid, _order in GROUP_ORDER.items():            # 3) 분류 순서 지정
     _sorted = sorted((groups[i] for i in pos), key=lambda g: _rank.get(g["g"], 99))
     for i, g in zip(pos, _sorted): groups[i] = g
 
+
+# ── 분류 체계 재구성(통일된 틀): tools/pharma_v2.py · pharma_cats_a/b.py · pharma_uses.py · ref_v2.py ──
+from pharma_v2 import build_v2
+V2 = build_v2(drugs, cats, groups)
+cats, groups, uses = V2["cats"], V2["groups"], V2["uses"]
+
 # ── 교재 원문 문장을 개조식(~함, ~임)으로 통일 ──────────────────────
 from gaejosik import convert_obj
 for _rec in drugs.values():
@@ -356,95 +369,8 @@ for g in groups:
 for c in cats:
     if c.get("d"): c["d"] = convert_obj(c["d"])
 
-# ── 계열(큰 분류) ──────────────────────────────────────────────
-# units: db["meta"]["units"]의 번호(0부터). 참고(AI 작성) 설명은 ref_family.py / ref_unit_a.py / ref_unit_b.py에 있다.
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from ref_family import FAM_REF
-from ref_unit_a import UNIT_REF_A
-from ref_unit_b import UNIT_REF_B
-
-FAMILIES = [
-    {"id": "neuro", "name": "신경계", "icon": "🧠", "units": list(range(0, 10)) + [28]},
-    {"id": "autacoid", "name": "오타코이드·염증", "icon": "🔥", "units": [10, 11, 12, 13, 14]},
-    {"id": "circ", "name": "순환·신장계", "icon": "❤️", "units": [15, 16, 17, 18, 19, 22]},
-    {"id": "resp", "name": "호흡기계", "icon": "🫁", "units": [20, 21]},
-    {"id": "gi", "name": "소화기계", "icon": "🍽️", "units": [36, 23, 24, 25]},
-    {"id": "endo", "name": "대사·내분비", "icon": "🧪", "units": [26, 27]},
-    {"id": "infect", "name": "항감염제", "icon": "🦠", "units": [29, 30, 34]},
-    {"id": "parasite", "name": "항기생충·살충제", "icon": "🐛", "units": [31, 32]},
-    {"id": "onco", "name": "항암·면역", "icon": "🎗️", "units": [33, 35]},
-]
-UNIT_REF = {**UNIT_REF_A, **UNIT_REF_B}
-# 23번 참고(위산 + 식욕)를 새 단원 36번(위산)과 23번(식욕·비만)으로 나눔
-assert len(UNIT_REF[23]) == 2 and "위산" in UNIT_REF[23][0]["t"] and "식욕" in UNIT_REF[23][1]["t"]
-UNIT_REF[36] = [UNIT_REF[23][0]]
-UNIT_REF[23] = [UNIT_REF[23][1]]
-UNITS = list(db["meta"]["units"]) + [UNIT_ACID]   # 36번 = 위산 분비 억제제(새 단원)
-assert UNITS[23] == "소화기계 약물"
-UNITS[23] = UNIT_APPETITE                          # 23번 = 식욕·비만(이름 변경)
-assert sorted(i for f in FAMILIES for i in f["units"]) == list(range(len(UNITS))), "모든 단원이 정확히 한 계열에 속해야 합니다"
-assert sorted(UNIT_REF) == list(range(len(UNITS))), "단원마다 참고 설명이 있어야 합니다: " + str(set(range(len(UNITS))) ^ set(UNIT_REF))
-assert set(FAM_REF) == {f["id"] for f in FAMILIES}, "계열 참고 설명이 모든 계열에 있어야 합니다"
-# 퀴즈 출제 범위: 단원을 더 큰 덩어리로 묶어 체크로 선택 (계열 id → [(이름, [단원 번호])])
-SCOPE_CHUNKS = {
-    "neuro": [("자율신경계", [0, 1, 2, 3, 4]), ("중추신경계(흥분·억제·진통)", [5, 6, 7]), ("구토·마취·항우울제", [8, 9, 28])],
-    "autacoid": [("Autacoid(항히스타민·Serotonin·Kinin/RAS)", [10, 11, 12]), ("항염증(스테로이드·NSAIDs)", [13, 14])],
-    "circ": [("심혈관(심부전·항부정맥·협심증·고혈압)", [15, 16, 17]), ("혈액응고·지혈", [18, 19]), ("이뇨제", [22])],
-    "resp": [("호흡기계", [20, 21])],
-    "gi": [("위산 분비 억제제", [36]), ("식욕·비만·항구토·장관운동", [23, 24, 25])],
-    "endo": [("이온·호르몬", [26, 27])],
-    "infect": [("항생제", [29]), ("항진균·항바이러스", [30, 34])],
-    "parasite": [("구충제", [31]), ("살충제", [32])],
-    "onco": [("항암제", [33]), ("면역억제제", [35])],
-}
-for _f in FAMILIES:
-    assert sorted(i for _, us in SCOPE_CHUNKS[_f["id"]] for i in us) == sorted(_f["units"]), "출제 범위 묶음이 계열의 단원과 맞지 않습니다: " + _f["id"]
-fam = [{"id": f["id"], "name": f["name"], "icon": f["icon"], "units": [UNITS[i] for i in f["units"]], "ref": FAM_REF[f["id"]],
-        "chunks": [{"n": n, "units": [UNITS[i] for i in us]} for n, us in SCOPE_CHUNKS[f["id"]]]} for f in FAMILIES]
-uref = {UNITS[i]: UNIT_REF[i] for i in UNIT_REF}
-
-# 단원 이름 간소화: (묶음 이름, 짧은 이름). 묶음이 없으면 None. 화면에서는 묶음 이름을 작은 글씨로 위에 보여준다.
-UNIT_LABELS = {
-    0: ("자율신경계", "아드레날린성"),
-    1: ("자율신경계", "말단 및 접합부 작용"),
-    2: ("자율신경계", "항아드레날린성"),
-    3: ("자율신경계", "콜린성 · 부교감 길항제"),
-    4: ("자율신경계", "신경절 니코틴성 · 근육이완제"),
-    5: ("중추신경계", "흥분제"),
-    6: ("중추신경계", "억제제"),
-    7: ("중추신경계", "진통제"),
-    8: (None, "구토 유발제"),
-    9: (None, "마취제"),
-    10: ("Autacoid", "항히스타민제"),
-    11: ("Autacoid", "Serotonin 작용제·길항제"),
-    12: ("Autacoid", "Kinin · renin-angiotensin"),
-    13: ("항염증", "스테로이드"),
-    14: ("항염증", "NSAIDs"),
-    15: ("순환계통약", "심부전 관리"),
-    16: ("순환계통약", "항부정맥"),
-    17: ("순환계통약", "협심증 · 고혈압"),
-    18: ("혈액응고", "항응고제"),
-    19: ("혈액응고", "혈전 용해 · 항혈소판 · 지혈"),
-    20: ("호흡기계", "충혈제거 · 거담 · 점액용해"),
-    21: ("호흡기계", "진해 · 기관지 이완 · 폐고혈압"),
-    22: (None, "이뇨제"),
-    23: ("소화기계", "식욕 · 비만"),
-    36: ("소화기계", "위산 분비 억제제"),
-    24: ("소화기계", "항구토제"),
-    25: ("소화기계", "장관운동"),
-    26: ("대사·내분비", "이온"),
-    27: ("대사·내분비", "호르몬과 약물"),
-    28: (None, "항우울제"),
-    29: (None, "항생제"),
-    30: (None, "항진균제"),
-    31: (None, "기생충약(구충제)"),
-    32: (None, "살충제"),
-    33: (None, "항암제"),
-    34: (None, "항바이러스제"),
-    35: (None, "면역억제제"),
-}
-assert sorted(UNIT_LABELS) == list(range(len(UNITS)))
-ulab = {UNITS[i]: {"g": g, "s": sname} for i, (g, sname) in UNIT_LABELS.items()}
+# ── 계열 · 단원 머리글 ──
+fam, ulab = V2["fam"], V2["ulab"]
 
 # ── 표기 다듬기: 괄호 앞 공백 제거, 가운뎃점은 ' · '(앞뒤 공백)로 통일 ──
 def _pol(t):
@@ -463,13 +389,28 @@ for _u in ulab.values():
     _u["s"] = _pol(_u["s"])
     if _u["g"]: _u["g"] = _pol(_u["g"])
 
+# ── 약물 이름 어미 정리(tools/pharma_stems.py): 정규식으로 예시를 자동 수집 ──
+from pharma_stems import STEMS
+stems = []
+for _st in STEMS:
+    _tr = {t[0] for t in _st["tr"]}
+    for _t in _tr: assert _t in drugs, ("어미 함정 약물이 DB에 없음", _st["s"], _t)
+    _ex = [i for i, r in drugs.items() if re.search(_st["rx"], r["n"].lower()) and i not in _tr]
+    assert _ex, "예시가 없는 어미: " + _st["s"]
+    stems.append({"s": _st["s"], "k": _st["k"], "m": _st["m"], "c": _st["c"], "ex": _ex, "tr": _st["tr"]})
+
+# 어미 목록 순서: 약물 분류 순서(신경 → 항염증 → 순환 → 소화·호흡 → 호르몬 → 항감염 → 항기생충 → 항암) 안에서 알파벳순
+_KO = ["신경·마취", "항염증", "심혈관·신장", "소화기·호흡기", "호르몬·대사", "항감염제", "항기생충", "항암·면역"]
+stems.sort(key=lambda s: (_KO.index(s["k"]), re.sub(r"[^a-z]", "", s["s"].lower().split("/")[0])))
+
 data = {
-    "units": UNITS,
+    "units": V2["units"],
     "fam": fam,
-    "uref": uref,
     "ulab": ulab,
     "cats": cats,
     "groups": groups,
+    "uses": uses,
+    "stems": stems,
     "drugs": drugs,
 }
 

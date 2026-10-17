@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>약물 이름 어미 정리</title>
+<style>
+:root{--bg:#f4f7f6;--card:#fff;--ink:#14202b;--sub:#5b6b78;--line:#d5dede;--acc:#0f766e;--accbg:#e1f3f0;--warn:#b45309;--warnbg:#fef3e2;--ok:#15803d;--okbg:#dcfce7;--no:#b91c1c;--nobg:#fee2e2}
+@media (prefers-color-scheme:dark){:root{--bg:#10181d;--card:#18232a;--ink:#e8eef1;--sub:#97a8b3;--line:#2c3b44;--acc:#2dd4bf;--accbg:#12332f;--warn:#fbbf24;--warnbg:#3a2c12;--ok:#4ade80;--okbg:#14351f;--no:#f87171;--nobg:#3b1818}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Pretendard","Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;line-height:1.55;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+main{max-width:760px;margin:0 auto;padding:20px 16px 60px}
+h1{font-size:26px;margin:8px 0 4px;letter-spacing:-.02em}
+p.sub{color:var(--sub);margin:0 0 12px;font-size:15px}
+button{font:inherit;color:inherit;cursor:pointer}
+.tools{display:flex;gap:8px;margin-bottom:6px}
+#q{flex:1;min-width:0;font:inherit;color:inherit;background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:11px 14px}
+#q:focus{outline:2px solid var(--acc);border-color:var(--acc)}
+.go{flex:none;background:var(--acc);color:var(--bg);border:0;border-radius:12px;padding:0 16px;font-weight:700}
+.kn{display:flex;gap:6px;overflow-x:auto;padding:6px 2px 10px;scrollbar-width:thin}
+.kn button{flex:none;background:var(--card);border:1.5px solid var(--line);border-radius:99px;padding:5px 12px;font-size:14px;white-space:nowrap}
+.kn button.on{background:var(--acc);border-color:var(--acc);color:var(--bg);font-weight:700}
+h2.k{font-size:15px;color:var(--sub);margin:20px 0 8px;letter-spacing:.02em}
+.st{background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:10px}
+.sh{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.sn{font-size:20px;font-weight:800;color:var(--acc);letter-spacing:-.01em}
+.sm{font-weight:700}
+.sc{color:var(--sub);font-size:14px;margin:3px 0 8px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{background:var(--accbg);color:inherit;font:inherit;font-size:14px;cursor:pointer;border:1px solid transparent;border-radius:99px;padding:2px 11px}
+.chip:hover,.chip:focus-visible{border-color:var(--acc);outline:none}
+.chip b{color:var(--acc)}
+.tr{margin-top:8px;background:var(--warnbg);border-radius:10px;padding:7px 10px;font-size:13.5px}
+.tr>b{color:var(--warn)}
+.tr .chip{background:var(--card);margin-right:2px}
+.tr div+div{margin-top:2px}
+.empty{color:var(--sub);text-align:center;padding:40px 0}
+mark{background:color-mix(in srgb,#eab308 50%,transparent);color:inherit;border-radius:3px}
+/* 테스트 */
+.back{background:none;border:0;color:var(--sub);font-size:16px;padding:6px 0;margin-bottom:4px}
+.meta{display:flex;justify-content:space-between;color:var(--sub);font-size:14px}
+.bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin:6px 0 4px}
+.bar i{display:block;height:100%;background:var(--acc);transition:width .25s}
+.qq{font-size:21px;font-weight:700;line-height:1.4;margin:22px 0 18px}
+.qq .nm{color:var(--acc)}
+.opt{display:block;width:100%;text-align:left;background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:13px 16px;margin-bottom:10px;font-size:16.5px}
+.opt.ok{background:var(--okbg);border-color:var(--ok);font-weight:700}
+.opt.no{background:var(--nobg);border-color:var(--no)}
+.opt[disabled]{cursor:default}
+.exp{background:var(--card);border-left:4px solid var(--acc);border-radius:8px;padding:12px 14px;margin:14px 0;font-size:15px}
+.btn{display:block;width:100%;background:var(--acc);color:var(--bg);border:0;border-radius:12px;padding:14px;font-size:17px;font-weight:700;margin-top:6px}
+.btn.alt{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.score{font-size:56px;font-weight:800;margin:10px 0 0;letter-spacing:-.03em}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<script src="data.js"></script>
+<script src="sheet.js"></script>
+<script src="../../shared/audio.js"></script>
+<script>
+const P=window.PHARMA,D=P.drugs,ST=P.stems,$=document.getElementById("app");
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const rnd=a=>a[Math.floor(Math.random()*a.length)];
+const shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const KS=[...new Set(ST.map(s=>s.k))];
+let kf="전체",q="";
+
+// 약물 이름에서 어미(또는 접두) 부분을 강조
+function mark(name,stem){
+  const n=name.toLowerCase();
+  for(const part of stem.split("/").map(x=>x.trim())){
+    if(part.endsWith("-")){const p=part.slice(0,-1);if(n.startsWith(p))return"<b>"+esc(name.slice(0,p.length))+"</b>"+esc(name.slice(p.length))}
+    else{const p=part.replace(/^-/,""),i=n.lastIndexOf(p);if(p&&i>=0)return esc(name.slice(0,i))+"<b>"+esc(name.slice(i,i+p.length))+"</b>"+esc(name.slice(i+p.length))}
+  }
+  return esc(name);
+}
+const hit=s=>(kf==="전체"||s.k===kf)&&(!q||[s.s,s.m,s.c,...s.ex.map(i=>D[i].n),...s.tr.map(t=>D[t[0]].n)].some(x=>String(x).toLowerCase().includes(q)));
+function card(s){
+  return`<div class="st"><div class="sh"><span class="sn">${esc(s.s)}</span><span class="sm">${esc(s.m)}</span></div><div class="sc">${esc(s.c)}</div>
+  <div class="chips">${s.ex.map(i=>`<button class="chip" data-id="${esc(i)}">${mark(D[i].n,s.s)}</button>`).join("")}</div>
+  ${s.tr.length?`<div class="tr"><b>⚠ 이름은 비슷하지만 다른 약</b>${s.tr.map(t=>`<div><button class="chip" data-id="${esc(t[0])}">${esc(D[t[0]].n)}</button> — ${esc(t[1])}</div>`).join("")}</div>`:""}</div>`;
+}
+function draw(){
+  const list=ST.filter(hit);
+  let html="",last="";
+  list.forEach(s=>{if(s.k!==last){html+=`<h2 class="k">${esc(s.k)}</h2>`;last=s.k}html+=card(s)});
+  document.getElementById("out").innerHTML=html||`<div class="empty">검색 결과가 없어요</div>`;
+}
+function home(){
+  $.innerHTML=`<h1>약물 이름 어미 정리</h1><p class="sub">어미(-zole, -pril …)로 계열을 추측하는 암기 정리 · 어미 ${ST.length}개 · 예외(함정)도 함께 표시</p>
+  <div class="tools"><input id="q" type="search" placeholder="어미·약물·계열 검색 (예: -pril, 항진균)" autocomplete="off"><button class="go" id="test">암기 테스트</button></div>
+  <div class="kn">${["전체",...KS].map(k=>`<button data-k="${esc(k)}" class="${k===kf?"on":""}">${esc(k)}</button>`).join("")}</div><div id="out"></div>`;
+  $.querySelector("#q").value=q;
+  $.querySelector("#q").oninput=e=>{q=e.target.value.trim().toLowerCase();draw()};
+  $.querySelector(".kn").onclick=e=>{const b=e.target.closest("button[data-k]");if(!b)return;kf=b.dataset.k;$.querySelectorAll(".kn button").forEach(x=>x.classList.toggle("on",x===b));draw()};
+  document.getElementById("test").onclick=()=>start();
+  draw();
+}
+
+// ── 암기 테스트: 약물 이름 → 계열 / 어미 → 계열 ──
+let S={};
+function make(){
+  const s=rnd(ST),byName=Math.random()<.65;
+  const others=shuf(ST.filter(x=>x.m!==s.m)).filter((x,i,a)=>a.findIndex(y=>y.m===x.m)===i).slice(0,4);
+  const opts=shuf([s,...others]);
+  if(byName){const id=rnd(s.ex);return{q:`<span class="nm">${esc(D[id].n)}</span>의 계열은?`,opts:opts.map(o=>o.m),a:opts.indexOf(s),html:`<b>${esc(s.s)}</b> = ${esc(s.m)}<br>${esc(s.c)}`}}
+  return{q:`어미 <span class="nm">${esc(s.s)}</span>가 붙은 약물의 계열은?`,opts:opts.map(o=>o.m),a:opts.indexOf(s),html:`<b>${esc(s.s)}</b> = ${esc(s.m)}<br>${esc(s.c)}<br>예: ${s.ex.slice(0,5).map(i=>esc(D[i].n)).join(", ")}`};
+}
+function start(){
+  const qs=[];while(qs.length<10)qs.push(make());
+  S={qs,i:0,score:0};show();
+}
+function show(){
+  const q=S.qs[S.i],n=S.qs.length;
+  $.innerHTML=`<button class="back" id="bk">← 목록</button><div class="meta"><span>${S.i+1} / ${n}</span><span>정답 ${S.score}</span></div><div class="bar"><i style="width:${S.i/n*100}%"></i></div>
+  <div class="qq">${q.q}</div><div id="opts">${q.opts.map((o,i)=>`<button class="opt" data-sfx="none" data-i="${i}">${"①②③④⑤"[i]} ${esc(o)}</button>`).join("")}</div><div id="fb"></div>`;
+  document.getElementById("bk").onclick=home;
+  $.querySelectorAll(".opt").forEach(b=>b.onclick=()=>pick(+b.dataset.i));
+}
+function pick(i){
+  const q=S.qs[S.i];
+  $.querySelectorAll(".opt").forEach((b,k)=>{b.disabled=true;if(k===q.a)b.classList.add("ok");else if(k===i)b.classList.add("no")});
+  if(i===q.a){S.score++;window.SFX&&SFX.ok()}else window.SFX&&SFX.no();
+  const last=S.i===S.qs.length-1;
+  document.getElementById("fb").innerHTML=`<div class="exp">${i===q.a?"정답!":"오답"} · ${q.html}</div><button class="btn" id="nx">${last?"결과 보기":"다음 문제"}</button>`;
+  const nx=document.getElementById("nx");nx.onclick=()=>{if(last)result();else{S.i++;show()}};nx.focus();
+}
+function result(){
+  window.SFX&&SFX.done();
+  $.innerHTML=`<div class="meta"><span>결과</span></div><div class="score">${S.score} / ${S.qs.length}</div><p class="sub">${S.score===S.qs.length?"전부 맞혔어요!":"틀린 어미는 목록에서 다시 확인해 보세요."}</p>
+  <button class="btn" id="ag">한 번 더</button><button class="btn alt" id="hm">목록으로</button>`;
+  document.getElementById("ag").onclick=start;document.getElementById("hm").onclick=home;
+}
+home();
+</script>
+</body>
+</html>

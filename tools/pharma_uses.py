@@ -1,0 +1,137 @@
+"""용도 태그: (id, 이름, 묶음, [약물 id]) — 시험에 자주 나오는 '무엇에 쓰는 약인가'를 약물군과 별개로 연결한다.
+한 약물이 여러 용도로 쓰여도 주 분류(약물군)는 한 곳이다."""
+
+NA = "자율신경계"
+CN = "중추신경계"
+AU = "오타코이드 · 염증"
+CI = "순환 · 신장계"
+RE = "호흡기계"
+GI = "소화기계"
+EN = "대사 · 내분비"
+IN = "항감염제"
+PA = "항기생충 · 살충제"
+ON = "항암 · 면역"
+
+USES = [
+    # ── 신경계 · 자율신경계 ──
+    ("pressor", "승압 · 쇼크 · 심장 자극", NA,
+     ["epinephrine", "norepinephrine", "dopamine", "dobutamine", "isoproterenol", "phenylephrine", "metaraminol", "methoxamine", "ephedrine", "mephentermine"]),
+    ("decongestant", "충혈 제거", NA, ["phenylephrine", "pseudoephedrine", "ephedrine"]),
+    ("tocolytic", "자궁 이완(분만 억제)", NA, ["ritodrine", "clenbuterol", "terbutaline"]),
+    ("pheo", "갈색세포종 · 카테콜아민 과다", NA, ["phenoxybenzamine", "phentolamine", "metyrosine"]),
+    ("a2_reversal", "α2 효현제 작용 길항", NA, ["atipamezole", "yohimbine", "tolazoline"]),
+    ("eye", "안과(산동 · 축동 · 녹내장)", NA, ["atropine", "tropicamide", "scopolamine", "pilocarpine", "physostigmine", "demecarium", "echothiophate", "carbachol"]),
+    ("antispasm", "진경 · 분비 억제(마취 전 투약)", NA,
+     ["atropine", "scopolamine", "n_butylscopolammonium", "hyoscyamine", "propantheline", "glycopyrrolate", "aminopentamide", "oxybutynin", "pirenzepine", "isopropamide"]),
+    ("gi_bladder_stim", "장 · 방광 운동 촉진", NA, ["bethanechol", "neostigmine", "pilocarpine", "carbachol", "methacholine"]),
+    ("nm_block", "신경근 차단(근이완 보조)", NA,
+     ["succinylcholine", "decamethonium", "d_tubocurarine", "gallamine_triethiodide", "metocurine", "pancuronium", "vecuronium", "atracurium", "alcuronium", "doxacurium"]),
+    ("nm_reversal", "신경근 차단 회복 · 중증근무력증 진단", NA, ["neostigmine", "edrophonium", "pyridostigmine"]),
+    ("op_antidote", "유기인 · 콜린 작용 과다 해독", NA, ["atropine", "glycopyrrolate", "pralidoxime"]),
+    ("incontinence", "요실금(요도 괄약근 기능부전)", NA, ["phenylpropanolamine", "ephedrine", "estriol", "diethylstilbestrol"]),
+    # ── 신경계 · 중추신경계 ──
+    ("sedation", "진정 · 최면", CN,
+     ["thiopental", "phenobarbital", "pentobarbital", "diazepam", "midazolam", "zolazepam", "chloral_hydrate", "glutethimide", "xylazine", "detomidine", "medetomidine", "dexmedetomidine", "romifidine"]),
+    ("tranq", "정온 · 신경이완(안정)", CN, ["chlorpromazine", "acepromazine", "promazine", "prochlorperazine", "droperidol", "fluanisone", "azaperone", "haloperidol"]),
+    ("anticonvulsant", "항경련", CN,
+     ["phenobarbital", "primidone", "diazepam", "midazolam", "clonazepam", "lorazepam", "phenytoin", "potassium_bromide", "ethosuximide", "valproic_acid", "gabapentin", "levetiracetam", "zonisamide"]),
+    ("muscle_relax", "근이완", CN, ["guaiacol_glycerol_ether", "methocarbamol", "mephenesin", "diazepam", "succinylcholine", "pancuronium", "vecuronium", "atracurium", "dantrolene"]),
+    ("analgesia", "진통", CN,
+     ["morphine", "codeine", "diamorphine", "methadone", "buprenorphine", "tramadol", "hydromorphone", "nalbuphine", "pethidine", "fentanyl", "levorphanol", "alphaprodine", "anileridine", "propoxyphene", "thiambutene", "etorphine", "butorphanol", "hydrocodone", "xylazine", "medetomidine", "dexmedetomidine", "detomidine", "romifidine", "gabapentin",
+      "ketamine", "lidocaine", "bupivacaine", "ropivacaine", "mepivacaine", "prilocaine", "tetracaine", "procaine", "benzocaine"]),
+    ("general_anesthesia", "전신마취 · 마취 유도", CN,
+     ["propofol", "ketamine", "etomidate", "metomidate", "alphaxalone", "thiopental", "pentobarbital", "zolazepam", "chloral_hydrate", "halothane", "isoflurane", "sevoflurane", "desflurane", "methoxyflurane", "nitrous_oxide", "tricaine_methanesulfonate", "tiletamine"]),
+    ("local_anesthesia", "국소마취", CN,
+     ["lidocaine", "bupivacaine", "ropivacaine", "mepivacaine", "prilocaine", "etidocaine", "cinchocaine", "tetracaine", "procaine", "benzocaine", "proparacaine", "butacaine", "butyl_aminobenzoate", "cocaine"]),
+    ("cns_stim_use", "중추 흥분 · 호흡 자극", CN, ["caffeine", "theophylline", "amphetamine", "methamphetamine", "doxapram", "nikethamide", "picrotoxin", "bemegride", "leptazol", "strychnine", "cocaine"]),
+    ("barb_antidote", "Barbiturate 과량 해독", CN, ["picrotoxin", "doxapram", "bemegride"]),
+    ("opioid_antidote", "opioid 과량 · 호흡 억제 해독", CN, ["naloxone", "butorphanol"]),
+    ("benzo_antidote", "Benzodiazepine 과량 해독", CN, ["flumazenil"]),
+    ("emesis", "구토 유발", CN, ["apomorphine", "xylazine", "saline", "sodium_carbonate", "1_copper_sulfate", "emetine", "ipecac"]),
+    ("antidepressant_use", "항우울 · 행동 교정", CN,
+     ["selegiline", "tranylcypromine", "phenelzine", "isocarboxazid", "iproniazid", "amitriptyline", "imipramine", "clomipramine", "doxepin", "fluoxetine", "paroxetine", "sertraline", "fluvoxamine", "trazodone", "megestrol_acetate", "medroxyprogesterone_acetate"]),
+    # ── 오타코이드 · 염증 ──
+    ("allergy", "알레르기 · 아나필락시스", AU,
+     ["epinephrine", "diphenhydramine", "mepyramine", "promethazine", "tripelennamine", "chlorpheniramine", "hydroxyzine", "astemizole", "terfenadine", "sodium_cromoglycate"]),
+    ("antiinflammatory_steroid", "항염증 · 면역 억제(글루코코르티코이드)", AU,
+     ["cortisol", "cortisone", "hydrocortisone", "prednisone", "prednisolone", "methylprednisolone", "dexamethasone", "triamcinolone", "flumethasone", "betamethasone"]),
+    ("nsaid_use", "해열 · 진통 · 소염", AU,
+     ["aspirin", "flunixin_meglumine", "naproxen", "ibuprofen", "indomethacin", "ketoprofen", "phenylbutazone", "meloxicam", "etodolac", "carprofen", "piroxicam", "deracoxib", "firocoxib", "robenacoxib", "grapiprant", "tepoxalin", "acetaminophen", "acetanilide", "phenacetin"]),
+    ("joint", "관절 보호 · 관절염", AU, ["dimethyl_sulfoxide", "polysulfated_glycosaminoglycan", "hyaluronate_sodium", "meloxicam", "carprofen", "phenylbutazone", "grapiprant"]),
+    ("pruritus", "소양증 · 아토피 피부염", AU, ["oclacitinib", "cyclosporine", "prednisolone", "dexamethasone", "diphenhydramine", "hydroxyzine", "chlorpheniramine"]),
+    ("repro_luteolysis", "황체 융해 · 발정 동기화 · 유산 유도", AU, ["pgf2alpha", "cloprostenol", "bromocriptine", "cabergoline"]),
+    # ── 순환 · 신장계 ──
+    ("heart_failure", "심부전 치료", CI,
+     ["digoxin", "digitoxin", "pimobendan", "amrinone", "milrinone", "dobutamine", "dopamine", "captopril", "enalapril", "lisinopril", "benazepril", "ramipril", "quinapril", "furosemide", "spironolactone", "hydralazine", "nitroglycerin", "nitroprusside", "amlodipine"]),
+    ("antiarrhythmic", "항부정맥 · 심박 억제", CI,
+     ["quinidine", "procainamide", "disopyramide", "lidocaine", "mexiletine", "tocainide", "phenytoin", "flecainide", "propafenone", "encainide", "indecainide", "lorcainide", "propranolol", "metoprolol", "esmolol", "pindolol", "atenolol", "acebutolol",
+      "amiodarone", "sotalol", "bretylium", "verapamil", "diltiazem", "adenosine", "digoxin"]),
+    ("antihypertensive", "항고혈압", CI,
+     ["amlodipine", "nifedipine", "diltiazem", "verapamil", "captopril", "enalapril", "lisinopril", "benazepril", "losartan", "valsartan", "candesartan", "telmisartan", "aliskiren", "hydralazine", "minoxidil", "nitroprusside",
+      "prazosin", "terazosin", "doxazosin", "phenoxybenzamine", "phentolamine", "clonidine", "guanabenz", "guanfacine", "reserpine", "guanethidine", "metoprolol", "atenolol", "propranolol", "nadolol", "timolol", "betaxolol", "hydrochlorothiazide", "furosemide", "spironolactone", "chlorpromazine", "veratridine"]),
+    ("angina", "협심증", CI, ["nitroglycerin", "isosorbide_dinitrate", "amyl_nitrite", "diltiazem", "verapamil", "nifedipine", "propranolol", "atenolol"]),
+    ("diuresis", "이뇨 · 부종", CI,
+     ["furosemide", "ethacrynic_acid", "bumetanide", "muzolimine", "torsemide", "chlorothiazide", "hydrochlorothiazide", "hydroflumethiazide", "bendroflumethiazide", "benzthiazide", "trichlormethiazide", "methyclothiazide", "polythiazide", "cyclothiazide", "chlorthalidone", "metolazone", "quinethazone", "indapamide", "spironolactone", "triamterene", "amiloride"]),
+    ("icp_iop", "뇌압 · 안압 저하", CI, ["mannitol", "dimethyl_sulfoxide", "acetazolamide", "dichlorphenamide", "ethoxzolamide", "methazolamide"]),
+    ("urine_ph", "요 pH 조절 · 요로 결석", CI, ["ammonium_chloride", "calcium_chloride", "sodium_phosphate", "ascorbic_acid", "methionine", "sodium_bicarbonate", "citrate", "acetazolamide"]),
+    ("anticoag", "항응고(생체 내 · 채혈 · 보존)", CI,
+     ["heparin", "dicumarol", "warfarin", "sodium_citrate_solution", "acid_citrate_dextrose", "sodium_oxalate", "fluoride", "silicone", "liquid_paraffin", "edetate_disodium", "hirudin"]),
+    ("antiplatelet_thrombolytic", "항혈소판 · 혈전 용해", CI, ["aspirin", "clopidogrel", "streptokinase"]),
+    ("hemostatic", "지혈 · 쿠마린계 중독 해독", CI, ["vitamin_k"]),
+    ("heparin_antidote", "heparin 과량 해독", CI, ["protamine_sulfate"]),
+    # ── 호흡기계 ──
+    ("bronchodilator", "기관지 확장", RE,
+     ["salbutamol", "terbutaline", "procaterol", "metaproterenol", "pirbuterol", "formoterol", "clenbuterol", "bitolterol", "isoproterenol", "ephedrine", "epinephrine", "ipratropium_bromide", "atropine", "glycopyrrolate", "eucatropine", "aminophylline", "theophylline", "caffeine", "theobromine"]),
+    ("antitussive", "진해", RE, ["morphine", "codeine", "diamorphine", "dextromethorphan", "hydrocodone", "butorphanol", "pholcodine", "noscapine", "benzonatate"]),
+    ("expectorant", "거담 · 점액 용해", RE, ["guaiacol_glycerol_ether", "ipecac", "cocillana", "tolu_balsam", "ammonium_bicarbonate", "potassium_iodide", "sodium_iodide", "bromhexine", "n_acetylcysteine", "dembrexine"]),
+    ("pulm_hypertension", "폐성 고혈압", RE, ["sildenafil"]),
+    # ── 소화기계 ──
+    ("acid_ulcer", "위산 억제 · 위궤양", GI,
+     ["omeprazole", "pantoprazole", "cimetidine", "ranitidine", "famotidine", "nizatidine", "burimamide", "metiamide", "sodium_bicarbonate", "calcium_carbonate", "aluminum_hydroxide", "magnesium_trisilicate", "sucralfate", "misoprostol", "homatropine", "methylatropine_nitrate", "methantheline_bromide", "propantheline", "atropine", "glycopyrrolate"]),
+    ("antiemetic_use", "구토 억제 · 멀미", GI,
+     ["maropitant", "ondansetron", "dolasetron", "metoclopramide", "prochlorperazine", "chlorpromazine", "acepromazine", "promazine", "haloperidol", "diphenhydramine", "dimenhydrinate", "promethazine", "scopolamine", "aminopentamide", "propantheline", "isopropamide", "phenobarbital", "mirtazapine"]),
+    ("antidiarrheal", "지사(장운동 억제)", GI, ["loperamide", "diphenoxylate"]),
+    ("laxative", "변비 · 완하", GI, ["lactulose", "polyethylene_glycol", "sodium_sulfate", "magnesium_sulfate", "magnesium_hydroxide"]),
+    ("prokinetic", "위장관 운동 촉진", GI, ["cisapride", "metoclopramide", "ranitidine", "erythromycin", "bethanechol", "neostigmine", "vasopressin"]),
+    ("appetite", "식욕 촉진", GI, ["oxazepam", "diazepam", "cyproheptadine", "mirtazapine", "capromorelin"]),
+    ("obesity", "비만 치료", GI, ["dirlotapide"]),
+    # ── 대사 · 내분비 ──
+    ("hypothyroid", "갑상선 기능 저하증 치료", EN, ["thyroid", "levothyroxine_sodium", "liothyronine_sodium", "liotrix", "iodine_casein"]),
+    ("hyperthyroid", "갑상선 기능 항진증 치료", EN, ["thiouracil", "methylthiouracil", "propylthiouracil", "methimazole", "ipodate", "radioactive_iodine_na131i"]),
+    ("hypocalcemia", "저칼슘혈증 · 칼슘 대사", EN, ["calcium_gluconate", "calcium_borogluconate", "dihydrotachysterol", "calcitriol", "calcitonin", "parathyroid_hormone"]),
+    ("diabetes", "당뇨병 · 혈당 조절", EN, ["insulin", "glipizide", "glyburide", "glimepiride", "metformin", "glucagon"]),
+    ("cushing", "Cushing병 치료(부신 억제)", EN, ["trilostane", "mitotane", "ketoconazole", "metyrapone", "selegiline"]),
+    ("addison", "Addison병 치료", EN, ["fludrocortisone", "deoxycorticosterone", "hydrocortisone", "prednisolone"]),
+    ("anabolic", "단백 동화 · 근육 · 식욕 증진", EN, ["testosterone", "stanozolol", "boldenone", "trenbolone", "19_nortestosterone", "methandrostenolone", "fluoxymesterone", "danazol"]),
+    ("estrus_control", "발정 억제 · 동기화 · 임신 유지", EN, ["progesterone", "altrenogest", "melengestrol", "megestrol_acetate", "medroxyprogesterone_acetate", "pgf2alpha", "cloprostenol", "pmsg", "hcg", "melatonin"]),
+    ("parturition", "분만 · 자궁 수축 · 후산 정체", EN, ["oxytocin", "ergonovine", "pgf2alpha", "cloprostenol", "dexamethasone"]),
+    ("diabetes_insipidus", "요붕증 · von Willebrand병 지혈", EN, ["desmopressin", "vasopressin"]),
+    ("pregnancy_termination", "임신 중절 · 자궁축농증 치료", EN, ["aglepristone", "pgf2alpha", "cloprostenol", "cabergoline", "bromocriptine"]),
+    ("lactation", "비유 촉진 · 억제", EN, ["sometribove", "oxytocin", "domperidone", "bromocriptine", "cabergoline"]),
+    # ── 항감염제 ──
+    ("anaerobe", "혐기성 감염", IN, ["metronidazole", "clindamycin", "lincomycin", "cefoxitin", "imipenem", "meropenem", "chloramphenicol"]),
+    ("tb", "결핵 치료", IN, ["isoniazid", "ethambutol", "rifampin", "streptomycin"]),
+    ("gi_topical_antibiotic", "장관 · 국소 항균", IN, ["neomycin", "bacitracin", "polymyxin_b", "colistin", "sulfasalazine"]),
+    ("mrsa_resistant", "내성균 · 중증 감염(보존적 사용)", IN, ["vancomycin", "imipenem", "meropenem", "cefepime", "amikacin"]),
+    ("brd", "소 · 돼지 호흡기병", IN, ["florfenicol", "tulathromycin", "tilmicosin", "ceftiofur", "enrofloxacin", "oxytetracycline", "tylosin"]),
+    ("skin_uti", "개 · 고양이 피부 · 요로 감염", IN, ["cefpodoxime", "cefovecin", "enrofloxacin", "marbofloxacin", "amoxicillin", "cephalexin", "clindamycin"]),
+    ("surgical_prophylaxis", "수술 전 예방적 항생제", IN, ["cefazolin"]),
+    ("antifungal_use", "진균 감염", IN, ["amphotericin_b", "nystatin", "ketoconazole", "itraconazole", "fluconazole", "miconazole", "terbinafine", "griseofulvin", "flucytosine"]),
+    ("antiviral_use", "바이러스 감염", IN, ["acyclovir", "famciclovir", "idoxuridine", "zidovudine", "oseltamivir", "amantadine"]),
+    # ── 항기생충 · 살충제 ──
+    ("nematode", "선충 구제", PA,
+     ["albendazole", "fenbendazole", "mebendazole", "thiabendazole", "prabendazole", "levamisole", "pyrantel", "morantel", "metyridine", "ivermectin", "doramectin", "selamectin", "milbemycin", "moxidectin", "piperazine", "dichlorvos", "trichlorfon", "emodepside"]),
+    ("cestode_trematode", "조충 · 흡충 구제", PA,
+     ["niclosamide", "bithionol", "hexachlorophene", "dichlorophen", "nitroxynil", "niclofolan", "oxyclozanide", "bunamidine", "dithiazine", "closantel", "praziquantel", "diamphenethide", "arecoline"]),
+    ("heartworm", "심장사상충 예방 · 치료", PA, ["melarsomine", "dimercaprol", "ivermectin", "milbemycin", "moxidectin", "selamectin"]),
+    ("protozoa", "원충 감염(콕시듐 · 바베시아 · 톡소플라스마)", PA,
+     ["clopidol", "robenidine", "dinitolmide", "nicarbazine", "monensin", "salinomycin", "lasalocid", "amprolium", "ethopabate", "sulfaquinoxaline", "diaveridine", "sulfadimethoxine", "ormethoprim", "trimethoprim", "diminazene", "pamaquine", "primaquine", "pyrimethamine", "sulfamonomethoxine", "acrinamine", "metronidazole", "toltrazuril"]),
+    ("ectoparasite", "외부 기생충 구제(살충)", PA,
+     ["fenitrothion", "coumaphos", "fenchlorphos", "dichlorvos", "malathion", "carbaryl", "pyrethrin", "decamethrin", "allethrin", "rotenone", "benzyl_benzoate", "sulfur", "nicotine", "ivermectin", "selamectin", "afoxolaner", "fluralaner", "fipronil", "imidacloprid", "amitraz", "permethrin", "lufenuron"]),
+    # ── 항암 · 면역 ──
+    ("chemo", "항암 화학요법", ON,
+     ["cyclophosphamide", "chlorambucil", "melphalan", "mechlorethamine", "ifosfamide", "lomustine", "carmustine", "streptozocin", "procarbazine", "dacarbazine", "hydroxyurea", "cisplatin", "carboplatin", "methotrexate", "5_fluorouracil", "cytarabine", "gemcitabine", "6_mercaptopurine", "6_thioguanine",
+      "vincristine", "vinblastine", "vinorelbine", "paclitaxel", "doxorubicin", "epirubicin", "actinomycin", "mitomycin", "mitoxantrone", "bleomycin", "etoposide", "l_asparaginase", "toceranib", "masitinib", "mitotane", "piroxicam"]),
+    ("immunosuppression", "면역 억제(면역 매개 질환 · 이식)", ON,
+     ["azathioprine", "mycophenolic_acid", "leflunomide", "cyclosporine", "tacrolimus", "auranofin", "aurothioglucose", "aurothiomalate", "niacinamide", "prednisolone", "dexamethasone", "cyclophosphamide"]),
+]

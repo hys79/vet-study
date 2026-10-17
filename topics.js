@@ -19,10 +19,11 @@ window.TOPICS = [
     id: "pharmacology",
     subject: "약리학",
     title: "약리학",
-    desc: "약물 649종 · 분류별 정리 · 약물/분류 퀴즈",
+    desc: "약물 687종 · 약물군·용도 정리 · 약물/분류/용도 퀴즈",
     emoji: "💊",
     items: [
       { type: "note", title: "약물 분류 정리", file: "content/pharmacology/notes.html" },
+      { type: "note", title: "약물 이름 어미 정리", file: "content/pharmacology/stems.html" },
       { type: "quiz", title: "약리학 퀴즈", file: "content/pharmacology/quiz.html" }
     ]
   }

@@ -106,9 +106,14 @@ P.groups.forEach(g=>{
   [gl(g),c.n].forEach(l=>{LM[l]=LM[l]||new Set();g.d.forEach(x=>LM[l].add(x))});
 });
 Object.keys(unitDrugs).forEach(u=>unitDrugs[u]=[...unitDrugs[u]]);
+const xCat={},xLab={},catAllX={};
+P.groups.forEach(g=>{
+  (catAllX[g.c]=catAllX[g.c]||new Set());[...g.d,...(g.x||[])].forEach(id=>catAllX[g.c].add(id));
+  (g.x||[]).forEach(id=>{(xCat[id]=xCat[id]||new Set()).add(g.c);(xLab[id]=xLab[id]||new Set()).add(gl(g))});
+});
 const FAMOF={};P.fam.forEach((f,i)=>f.units.forEach(u=>FAMOF[u]=i));
 const famDrugs={};ALL.forEach(id=>{const u=(clsOf[id]||[]).map(g=>unitOf(g))[0];if(u!==undefined){const i=FAMOF[u];(famDrugs[i]=famDrugs[i]||[]).push(id)}});
-const ownLabels=id=>{const s=new Set();(clsOf[id]||[]).forEach(g=>{s.add(gl(g));s.add(catById[g.c].n)});return s};
+const ownLabels=id=>{const s=new Set();(clsOf[id]||[]).forEach(g=>{s.add(gl(g));s.add(catById[g.c].n)});(xCat[id]||[]).forEach(c=>s.add(catById[c].n));(xLab[id]||[]).forEach(l=>s.add(l));return s};
 const clsHtml=id=>(clsOf[id]||[]).map(g=>{const c=catById[g.c];return`${esc(catPath(c))}${g.g?" › <b>"+esc(g.g)+"</b>":""}`}).join("<br>");
 
 // ── 약물 정보 색인 (분류·기전·용도·주의 … 항목) ──
@@ -292,7 +297,7 @@ function pickCats(c0,own,level,k){
 }
 // 오답 세부 분류 k개 (어려움): 같은 카테고리의 형제 분류를 우선
 function pickGroups(g0,id,k){
-  const own=ownLabels(id),ownG=(clsOf[id]||[]).map(gl),l0=gl(g0),u0=unitOf(g0);
+  const own=ownLabels(id),ownG=[...(clsOf[id]||[]).map(gl),...(xLab[id]||[])],l0=gl(g0),u0=unitOf(g0);
   const bad=l=>own.has(l)||nested(l,l0)||ownG.some(o=>nested(l,o));
   const ok=GQ.filter(g=>g!==g0&&!bad(gl(g)));
   const sib=shuf(ok.filter(g=>g.c===g0.c)),sameU=shuf(ok.filter(g=>g.c!==g0.c&&unitOf(g)===u0)),sameF=shuf(ok.filter(g=>unitOf(g)!==u0&&sameFam(unitOf(g),u0))),far=shuf(ok.filter(g=>!sameFam(unitOf(g),u0)));
@@ -323,23 +328,23 @@ function genB(){ // 분류에 속하는 약물
   const pool=GQ.filter(inScope);if(!pool.length)return null;
   const g=rnd(pool),c=catById[g.c];
   if(DIFF==="hard"){
-    const ex=union(g.d,LM[gl(g)],nestedDrugs(g)),non=pickDrugs(ex,c,"hard",4,keyOf(c.n));if(!non)return null;
+    const ex=union(g.d,g.x,LM[gl(g)],nestedDrugs(g)),non=pickDrugs(ex,c,"hard",4,keyOf(c.n));if(!non)return null;
     const ans=rnd(g.d),opts=shuf([ans,...non]);
     return{q:`다음 중 <b>「${esc(gl(g))}」</b>에 속하는 약물은?${ctx(g)}`,opts:opts.map(dn),a:opts.indexOf(ans),html:`<b>${esc(gl(g))}</b>: ${g.d.map(x=>esc(dn(x))).join(", ")}<br><br>${drugCard(ans)}`,key:"B"+DIFF+g.c+gl(g)+ans};
   }
-  const ex=union(catDrugs[c.i],LM[c.n]),non=pickDrugs(ex,c,DIFF,4,keyOf(c.n));if(!non)return null;
+  const ex=union(catDrugs[c.i],LM[c.n]),non=pickDrugs(union(ex,catAllX[c.i]),c,DIFF,4,keyOf(c.n));if(!non)return null;
   const ans=rnd([...ex]),opts=shuf([ans,...non]);
   return{q:`다음 중 <b>「${esc(c.n)}」</b>에 속하는 약물은?<span class="ctx">${esc(ulab(c.u))}</span>`,opts:opts.map(dn),a:opts.indexOf(ans),html:`${groupsHtml(c)}<br><br>${drugCard(ans)}`,key:"B"+DIFF+c.i+ans};
 }
 function genC(){ // 속하지 않는 약물
   const pool=DIFF==="hard"?GQ.filter(g=>inScope(g)&&g.d.length>=4):[];
   if(pool.length){
-    const g=rnd(pool),c=catById[g.c],non=pickDrugs(union(g.d,LM[gl(g)],nestedDrugs(g)),c,"hard",1,keyOf(c.n));if(!non)return null;
+    const g=rnd(pool),c=catById[g.c],non=pickDrugs(union(g.d,g.x,LM[gl(g)],nestedDrugs(g)),c,"hard",1,keyOf(c.n));if(!non)return null;
     const mem=shuf(g.d).slice(0,4),opts=shuf([non[0],...mem]);
     return{q:`다음 중 <b>「${esc(gl(g))}」</b>에 속하지 않는 약물은?${ctx(g)}`,opts:opts.map(dn),a:opts.indexOf(non[0]),html:`<b>${esc(gl(g))}</b>: ${g.d.map(x=>esc(dn(x))).join(", ")}<br><b>${esc(dn(non[0]))}</b>은(는) 이 분류가 아님<br>${clsHtml(non[0])}`,key:"C"+DIFF+g.c+gl(g)+non[0]};
   }
   const cs=P.cats.filter(c=>sel.has(c.u)&&catDrugs[c.i]&&catDrugs[c.i].size>=4);if(!cs.length)return null;
-  const c=rnd(cs),non=pickDrugs(union(catDrugs[c.i],LM[c.n]),c,DIFF,1,keyOf(c.n));if(!non)return null;
+  const c=rnd(cs),non=pickDrugs(union(catDrugs[c.i],LM[c.n],catAllX[c.i]),c,DIFF,1,keyOf(c.n));if(!non)return null;
   const mem=shuf([...catDrugs[c.i]]).slice(0,4),opts=shuf([non[0],...mem]);
   return{q:`다음 중 <b>「${esc(c.n)}」</b>에 속하지 않는 약물은?<span class="ctx">${esc(ulab(c.u))}</span>`,opts:opts.map(dn),a:opts.indexOf(non[0]),html:`${groupsHtml(c)}<br><b>${esc(dn(non[0]))}</b>은(는) 이 분류가 아님<br>${clsHtml(non[0])}`,key:"C"+DIFF+c.i+non[0]};
 }
@@ -352,17 +357,45 @@ function genA(){
     const all=shuf([g0,...ds]),sub=g=>{const c=catById[g.c];return gl(g)===c.n?ulab(c.u):catPath(c)};
     return{q:`다음 약물의 분류로 옳은 것은?<span class="stmt">${esc(dn(id))}</span>`,opts:all.map(gl),sub:all.map(sub),a:all.indexOf(g0),html:drugCard(id),key:"A"+DIFF+id+gl(g0)};
   }
-  const own=new Set((clsOf[id]||[]).map(g=>g.c)),ds=pickCats(c0,own,DIFF,4);if(!ds)return null;
+  const own=new Set([...(clsOf[id]||[]).map(g=>g.c),...(xCat[id]||[])]),ds=pickCats(c0,own,DIFF,4);if(!ds)return null;
   const all=shuf([c0,...ds]);
   return{q:`다음 약물의 분류로 옳은 것은?<span class="stmt">${esc(dn(id))}</span>`,opts:all.map(c=>c.n),sub:all.map(c=>ulab(c.u)),a:all.indexOf(c0),html:drugCard(id),key:"A"+DIFF+id+c0.i};
 }
-const GEN={i2n:[()=>genInfo2Name()],n2i:[()=>genName2Info(null,true)],c2n:[genB,genC],n2c:[genA]};
+// 6) 용도 → 약물 (기출 예: 아나필락시스에 사용할 수 있는 약물은?)
+// 오답은 '용도 태그가 있는 약물' 중에서, 정답 용도와 겹칠 수 있는 비슷한 용도(같은 묶음)를 가진 약물을 뺀 것만 사용
+const USE_CLUSTERS=[
+  ["sedation","tranq","anticonvulsant","muscle_relax","nm_block","general_anesthesia","analgesia","local_anesthesia","a2_reversal","joint","nsaid_use","opioid_antidote","antitussive_opioid","benzo_antidote"],
+  ["pressor","bronchodilator","decongestant","tocolytic","incontinence"],
+  ["anticoag","heparin_antidote","antiplatelet_thrombolytic","hemostatic"],
+  ["heart_failure","antiarrhythmic","antihypertensive","angina","pheo","diuresis"],
+  ["eye","antispasm","gi_bladder_stim","op_antidote","nm_reversal","acid_ulcer","prokinetic"],
+  ["cns_stim_use","barb_antidote"],
+  ["antiemetic_use","emesis","motion"],
+  ["antitussive","expectorant"],
+  ["laxative","antidiarrheal"],
+  ["parturition","estrus_control","lactation","repro_luteolysis","pregnancy_termination","diabetes_insipidus"],
+  ["nematode","cestode_trematode","heartworm","protozoa","ectoparasite","anthelmintic_n"],
+  ["chemo","immunosuppression","antiinflammatory_steroid","pruritus"],
+  ["antifungal_use","antiviral_use","anaerobe","tb","gi_topical_antibiotic","mrsa_resistant","brd","skin_uti","surgical_prophylaxis"]
+];
+function genU(){
+  const us=(P.uses||[]).filter(u=>u.d.some(drugInScope));if(!us.length)return null;
+  const u=rnd(us),cl=USE_CLUSTERS.find(c=>c.includes(u.i))||[u.i];
+  const ans=rnd(u.d.filter(drugInScope));
+  const pool=ALL.filter(x=>(D[x].u||[]).length&&!(D[x].u||[]).some(k=>cl.includes(k)));
+  const near=pool.filter(x=>(clsOf[x]||[]).some(g=>FAMOF[unitOf(g)]===FAMOF[unitOfDrug(ans)]));
+  const non=takeK([...shuf(near),...shuf(pool)],4,dn);if(!non)return null;
+  const opts=shuf([ans,...non]);
+  return{q:`다음 중 <b>「${esc(u.n)}」</b> 용도로 쓰이는 약물은?<span class="ctx">${esc(u.g)}</span>`,opts:opts.map(dn),a:opts.indexOf(ans),html:`<b>${esc(u.n)}</b>: ${u.d.map(x=>esc(dn(x))).join(", ")}<br><br>${drugCard(ans)}`,key:"U"+u.i+ans};
+}
+const GEN={u2n:[genU],i2n:[()=>genInfo2Name()],n2i:[()=>genName2Info(null,true)],c2n:[genB,genC],n2c:[genA]};
 const GROUPS=[
-  {t:"약물과 그 정보를 연결하는 유형",m:["n2i","i2n"]},
+  {t:"약물과 그 정보를 연결하는 유형",m:["n2i","i2n","u2n"]},
   {t:"분류와 약물을 연결하는 유형 — 난이도 선택 가능",m:["n2c","c2n"],sw:"c"},
   {t:"모든 유형을 섞어서 출제 — 분류 유형 문제에 난이도 적용",m:["mix"],sw:"m"}
 ];
 const MODES=[
+  ["u2n","용도 → 약물","진정·진통·이뇨·항경련 등 용도에 쓰이는 약물 고르기"],
   ["i2n","정보 → 약물","분류·기전·용도·부작용·금기·해독 정보를 보고 약물 맞히기"],
   ["n2i","약물 → 정보","약물에 대한 옳은(옳지 않은) 설명 고르기"],
   ["c2n","분류 → 약물","분류에 속하는(속하지 않는) 약물 고르기"],
