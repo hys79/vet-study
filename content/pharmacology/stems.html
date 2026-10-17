@@ -89,12 +89,15 @@ function draw(){
 }
 function home(){
   $.innerHTML=`<h1>약물 이름 어미 정리</h1><p class="sub">어미(-zole, -pril …)로 계열을 추측하는 암기 정리 · 어미 ${ST.length}개 · 예외(함정)도 함께 표시</p>
-  <div class="tools"><input id="q" type="search" placeholder="어미·약물·계열 검색 (예: -pril, 항진균)" autocomplete="off"><button class="go" id="test">암기 테스트</button></div>
+  <div class="tools"><input id="q" type="search" placeholder="어미·약물·계열 검색 (예: -pril, 항진균)" autocomplete="off"><button class="go" id="test">암기 테스트</button><button class="go" id="stbtn" style="background:var(--card);color:#d97706;border:1.5px solid var(--line)" aria-label="북마크한 약물">★ <span id="stn">0</span></button></div>
   <div class="kn">${["전체",...KS].map(k=>`<button data-k="${esc(k)}" class="${k===kf?"on":""}">${esc(k)}</button>`).join("")}</div><div id="out"></div>`;
   $.querySelector("#q").value=q;
   $.querySelector("#q").oninput=e=>{q=e.target.value.trim().toLowerCase();draw()};
   $.querySelector(".kn").onclick=e=>{const b=e.target.closest("button[data-k]");if(!b)return;kf=b.dataset.k;$.querySelectorAll(".kn button").forEach(x=>x.classList.toggle("on",x===b));draw()};
   document.getElementById("test").onclick=()=>start();
+  const upd=()=>{document.getElementById("stn").textContent=DrugSheet.stars().length};upd();
+  if(!window._stl){window._stl=1;document.addEventListener("starschange",()=>{const n=document.getElementById("stn");if(n)n.textContent=DrugSheet.stars().length})}
+  document.getElementById("stbtn").onclick=()=>DrugSheet.openStars();
   draw();
 }
 

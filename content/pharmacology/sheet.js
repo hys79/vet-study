@@ -17,6 +17,17 @@
 #sh-body{overflow:auto;padding:0 18px 28px}
 #sh-top h2{margin:0;font-size:22px;letter-spacing:-.01em;word-break:break-word}
 #sh-top .x{background:none;color:inherit;font:inherit;cursor:pointer;border:1.5px solid var(--line);border-radius:50%;width:36px;height:36px;flex:none;font-size:16px}
+#sh-top .nm{display:flex;align-items:center;gap:6px;min-width:0}
+#sheet .star{background:none;border:0;padding:0 3px;font:inherit;font-size:19px;line-height:1;cursor:pointer;color:var(--sub);opacity:.75;flex:none}
+#sheet .star:hover{opacity:1}
+#sheet .star.on{color:#f59e0b;opacity:1}
+#sheet .star:focus-visible{outline:2px solid var(--acc);border-radius:6px}
+#sheet .sr{display:inline-flex;align-items:center;gap:1px;margin:0 6px 6px 0;transition:opacity .15s}
+#sheet .sr.off{opacity:.45}
+#sheet .sr .chip{padding-right:6px}
+#sheet .sr .star{font-size:17px}
+#sheet .stdel{margin-top:16px;background:none;color:var(--sub);font:inherit;font-size:13px;border:1px solid var(--line);border-radius:8px;padding:5px 12px;cursor:pointer}
+#sheet .none{color:var(--sub);padding:14px 0}
 #sheet h4{margin:14px 0 4px;font-size:13px;color:var(--sub)}
 #sheet h5{margin:10px 0 4px;font-size:14.5px}
 #sheet .alias{color:var(--sub);font-size:14px;margin-top:2px}
@@ -55,7 +66,14 @@
   const ulab = u => { const l = UL[u]; return l && l.g ? `${l.g} · ${l.s}` : us(u); };
   const norm = s => String(s).replace(/\(.*?\)/g, "").replace(/[^0-9A-Za-z가-힣]/g, "").toLowerCase();
   const sameName = (a, b) => { const x = norm(a), y = norm(b); return !!x && x === y; };
-  const chips = ids => `<div class="chips">${ids.map(id => D[id] ? `<button class="chip" data-id="${esc(id)}">${esc(D[id].n)}</button>` : "").join("")}</div>`;
+  // ── 북마크(★): 기기에 저장 ──
+  const SKEY = "pharmaStars";
+  let stars = [];
+  try { const v = JSON.parse(localStorage.getItem(SKEY) || "[]"); if (Array.isArray(v)) stars = v.filter(id => D[id]); } catch (e) {}
+  const saveStars = () => { try { localStorage.setItem(SKEY, JSON.stringify(stars)); } catch (e) {} document.dispatchEvent(new CustomEvent("starschange", { detail: stars.length })); };
+  const isStar = id => stars.includes(id);
+  const toggleStar = id => { stars = isStar(id) ? stars.filter(x => x !== id) : [...stars, id]; saveStars(); };
+  const chips = ids => `<div class="chips">${ids.map(id => D[id] ? `<button class="chip" data-id="${esc(id)}">${isStar(id) ? "★ " : ""}${esc(D[id].n)}</button>` : "").join("")}</div>`;
 
   // 교재 DB 원문(분류 설명 등)을 그대로 펼쳐 보여주는 트리
   const LBL = { site: "작용 부위", mechanism: "기전", characteristics: "특징", indications: "적응증", adverse: "부작용", contraindications: "금기", contraindication: "금기", uses: "용도", use: "용도", clinical_use: "임상 용도", therapeutic_use: "치료 용도", general: "일반", overview: "개요", note: "참고", type: "종류", members_labels: "구성 계열", members: "구성", mixtures: "혼합제", effects: "효과", class_info: "계열별 정보", group_info: "분류별 정보", subgroups: "세부 분류", ion_info: "이온 정보", classes: "계열" };
@@ -105,7 +123,7 @@
       const c = catById[g.c], peers = g.d.filter(x => x !== id), rd = relDetail(c, g);
       return `<div class="grp"><div class="path">${esc(ulab(c.u))} › ${esc(c.n)}</div>${g.g && !sameName(g.g, c.n) ? `<div class="gn">${esc(g.g)}</div>` : ""}${g.i ? `<div class="sub2">기전·특징</div>${tree(g.i)}` : ""}${rd ? `<div class="sub2">분류 설명</div>${tree(rd)}` : ""}${peers.length ? `<div class="sub2">같은 분류의 약물</div>${chips(peers)}` : ""}</div>`;
     }).join("");
-    show(`<div><h2>${esc(d.n)}</h2>${d.a ? `<div class="alias">${esc(d.a.join(" · "))}</div>` : ""}</div>`,
+    show(`<div style="min-width:0"><div class="nm"><h2>${esc(d.n)}</h2><button class="star${isStar(id) ? " on" : ""}" data-star="${esc(id)}" aria-label="북마크" aria-pressed="${isStar(id)}" title="북마크">${isStar(id) ? "★" : "☆"}</button></div>${d.a ? `<div class="alias">${esc(d.a.join(" · "))}</div>` : ""}</div>`,
       (d.ds ? `<ul class="lead">${d.ds.map(t => `<li>${bullet(t)}</li>`).join("")}</ul>` : "") +
       (info ? `<h4>정보</h4>${info}` : "") +
       (d.u && d.u.length ? `<h4>용도</h4><div class="tags">${d.u.map(x => `<button class="tag use" data-use="${esc(x)}">${esc(useById[x] ? useById[x].n : x)}</button>`).join("")}</div>` : "") +
@@ -119,13 +137,24 @@
     show(`<div><h2>${esc(u.n)}</h2><div class="alias">용도 · ${esc(u.g)} · ${u.d.length}종 (AI 작성)</div></div>`,
       [...by].map(([k, ids]) => `<h5>${esc(k)}</h5>${chips(ids)}`).join(""));
   }
+  // 북마크한 약물 모아 보기(약물군 › 세부 분류별)
+  function openStars() {
+    const by = new Map();
+    stars.forEach(id => { const g = (clsOf[id] || [])[0], k = g ? `${catById[g.c].n} › ${g.g || catById[g.c].n}` : "분류 없음"; if (!by.has(k)) by.set(k, []); by.get(k).push(id); });
+    show(`<div><h2>★ 북마크</h2><div class="alias">${stars.length}종 · 약물 정보창의 ☆를 눌러 추가·해제</div></div>`,
+      stars.length ? [...by].map(([k, ids]) => `<h5>${esc(k)}</h5><div class="chips">${ids.map(id => `<span class="sr"><button class="chip" data-id="${esc(id)}">${esc(D[id].n)}</button><button class="star on" data-star="${esc(id)}" aria-label="북마크 해제" aria-pressed="true" title="북마크 해제">★</button></span>`).join("")}</div>`).join("") + '<button class="stdel" id="stdel">모두 해제</button>'
+        : '<div class="none">아직 북마크한 약물이 없어요. 약물 정보창 이름 옆의 ☆를 눌러 추가해 보세요.</div>');
+    const del = $("stdel"); if (del) del.onclick = () => { if (confirm("북마크를 모두 해제할까요?")) { stars = []; saveStars(); openStars(); } };
+  }
   function close() { bg.classList.remove("on"); document.body.style.overflow = ""; }
 
   bg.onclick = e => { if (e.target === bg) close(); };
   addEventListener("keydown", e => { if (e.key === "Escape") close(); });
   document.addEventListener("click", e => {
+    const t = e.target.closest("[data-star]");
+    if (t) { toggleStar(t.dataset.star); const on = isStar(t.dataset.star); t.classList.toggle("on", on); t.textContent = on ? "★" : "☆"; t.setAttribute("aria-pressed", on); const row = t.closest(".sr"); if (row) row.classList.toggle("off", !on); const sub = document.querySelector("#sh-top .alias"); if (sub && row) sub.textContent = `${stars.length}종 · 약물 정보창의 ☆를 눌러 추가·해제`; return; }
     const u = e.target.closest("[data-use]"); if (u) { openUse(u.dataset.use); return; }
     const b = e.target.closest(".chip"); if (b && b.dataset.id) open(b.dataset.id);
   });
-  window.DrugSheet = { open, openUse, close, tree };
+  window.DrugSheet = { open, openUse, openStars, close, tree, stars: () => stars.slice(), isStar };
 })();
